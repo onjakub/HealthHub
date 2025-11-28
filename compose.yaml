@@ -1,7 +1,50 @@
 ﻿services:
-  healthhub:
+  healthhub-db:
+    image: postgres:16
+    container_name: healthhub-db
+    environment:
+      POSTGRES_DB: healthhub
+      POSTGRES_USER: health
+      POSTGRES_PASSWORD: healthpwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - healthhub_data:/var/lib/postgresql/data
+    networks:
+      - healthhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U health -d healthhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  healthhub-api:
     image: healthhub
+    container_name: healthhub-api
     build:
       context: .
       dockerfile: HealthHub/Dockerfile
+    environment:
+      DB_CONNECTION: "Host=healthhub-db;Database=healthhub;Username=health;Password=healthpwd"
+      JWT_KEY: "production-secret-change-this-in-production-very-long-secure-key"
+      ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      healthhub-db:
+        condition: service_healthy
+    networks:
+      - healthhub-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+volumes:
+  healthhub_data:
+
+networks:
+  healthhub-network:
+    driver: bridge

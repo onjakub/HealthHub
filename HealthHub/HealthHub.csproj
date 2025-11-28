@@ -9,7 +9,20 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0"/>
-    </ItemGroup>
+        <PackageReference Include="HotChocolate.AspNetCore" Version="13.9.7" />
+        <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.9.7" />
+        <PackageReference Include="HotChocolate.Data.EntityFramework" Version="13.9.7" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+        <PackageReference Include="xunit" Version="2.9.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Application" />
+    <Folder Include="wwwroot" />
+  </ItemGroup>
 
     <ItemGroup>
       <Content Include="..\.dockerignore">
