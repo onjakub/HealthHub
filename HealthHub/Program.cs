@@ -83,6 +83,12 @@ builder.Services
 // Static files for simple frontend
 builder.Services.AddRouting();
 
+// HTTPS redirection disabled for development - application runs on HTTP only
+// builder.Services.AddHttpsRedirection(options =>
+// {
+//     options.HttpsPort = 7017;
+// });
+
 var app = builder.Build();
 
 // Apply DB creation/migrations
@@ -97,7 +103,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -105,12 +111,21 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Simple token issuing endpoint for demo purposes
-app.MapPost("/auth/token", (string username, string password) =>
+app.MapPost("/auth/token", (HttpContext context) =>
     {
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        // Parse JSON body
+        try
         {
-            return Results.BadRequest(new { error = "Invalid credentials" });
-        }
+            using var reader = new StreamReader(context.Request.Body);
+            var body = reader.ReadToEndAsync().Result;
+            var json = System.Text.Json.JsonDocument.Parse(body);
+            var username = json.RootElement.GetProperty("username").GetString();
+            var password = json.RootElement.GetProperty("password").GetString();
+            
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                return Results.BadRequest(new { error = "Invalid credentials" });
+            }
 
         var claims = new List<Claim> { new(ClaimTypes.Name, username) };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
@@ -124,6 +139,11 @@ app.MapPost("/auth/token", (string username, string password) =>
 
         var jwt = new JwtSecurityTokenHandler().WriteToken(token);
         return Results.Ok(new { token = jwt });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new { error = "Invalid request format" });
+        }
     })
     .AllowAnonymous();
 

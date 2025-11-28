@@ -1,6 +1,144 @@
 @HealthHub_HostAddress = http://localhost:5023
+@ContentType = application/json
 
-GET {{HealthHub_HostAddress}}/weatherforecast/
-Accept: application/json
+### INSTRUKCE: Jak používat tento soubor
+// 1. Spusťte server: cd HealthHub && dotnet run
+// 2. Spusťte request #1 pro ověření, že server běží
+// 3. Spusťte request #2 pro získání tokenu
+// 4. Zkopírujte token z odpovědi requestu #2
+// 5. Vložte token do proměnné @authToken v requestu #3
+// 6. Nyní můžete spouštět všechny GraphQL requesty (#4-#12)
 
-###
+### 1. Health Check - Ověření, že server běží
+GET {{HealthHub_HostAddress}}/health
+Accept: {{ContentType}}
+
+### 2. Authentication - Získání JWT Tokenu
+// PO SPUŠTĚNÍ: Zkopírujte token z odpovědi a vložte do @authToken níže
+POST {{HealthHub_HostAddress}}/auth/token
+Content-Type: {{ContentType}}
+
+{
+  "username": "test",
+  "password": "test"
+}
+
+### 3. Nastavení autentizačního tokenu
+// VLOŽTE ZDE TOKEN Z REQUESTU #2:
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImV4cCI6MTc2NDQxMzUyNywiaXNzIjoiSGVhbHRoSHViIiwiYXVkIjoiSGVhbHRoSHViQXVkaWVuY2UifQ.Gju_xdgUD5rWIGMfbj3B9T4RbYM0kh0WH7qaySMQaQs
+
+### 4. GraphQL - Získání všech pacientů
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "query { patients { nodes { id firstName lastName fullName age lastDiagnosis createdAt } } }"
+}
+
+### 5. GraphQL - Získání pacienta podle ID
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "query($id: UUID!) { patient(id: $id) { id firstName lastName fullName age lastDiagnosis createdAt diagnosticResults { id diagnosis notes timestampUtc } } }",
+  "variables": {
+    "id": "00000000-0000-0000-0000-000000000000"
+  }
+}
+
+### 6. GraphQL - Vytvoření nového pacienta
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "mutation($input: CreatePatientInput!) { createPatient(command: $input) { id firstName lastName fullName age } }",
+  "variables": {
+    "input": {
+      "firstName": "Jan",
+      "lastName": "Novák",
+      "dateOfBirth": "1980-01-01"
+    }
+  }
+}
+
+### 7. GraphQL - Přidání diagnostického výsledku
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "mutation($input: AddDiagnosticResultInput!) { addDiagnosticResult(command: $input) { id patientId diagnosis notes timestampUtc } }",
+  "variables": {
+    "input": {
+      "patientId": "00000000-0000-0000-0000-000000000000",
+      "diagnosis": "Chřipka",
+      "notes": "Pacient má zvýšenou teplotu a kašel"
+    }
+  }
+}
+
+### 8. GraphQL - Aktualizace pacienta
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "mutation($input: UpdatePatientInput!) { updatePatient(command: $input) { id firstName lastName fullName age } }",
+  "variables": {
+    "input": {
+      "patientId": "00000000-0000-0000-0000-000000000000",
+      "firstName": "Jan",
+      "lastName": "Novotný"
+    }
+  }
+}
+
+### 9. GraphQL - Získání diagnostických výsledků pacienta
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "query($patientId: UUID!) { getPatientDiagnosticResults(patientId: $patientId) { id diagnosis notes timestampUtc } }",
+  "variables": {
+    "patientId": "00000000-0000-0000-0000-000000000000"
+  }
+}
+
+### 10. GraphQL - Smazání pacienta
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "mutation($input: DeletePatientInput!) { deletePatient(command: $input) }",
+  "variables": {
+    "input": {
+      "patientId": "00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+
+### 11. Test bez autentizace (mělo by vrátit 401)
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+
+{
+  "query": "query { patients { nodes { id firstName } } }"
+}
+
+### 12. Test s neplatným tokenem (mělo by vrátit 401)
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer invalid-token
+
+{
+  "query": "query { patients { nodes { id firstName } } }"
+}
+
+### 13. OpenAPI Dokumentace (pokud je povolena)
+GET {{HealthHub_HostAddress}}/openapi/v1.json
+Accept: {{ContentType}}

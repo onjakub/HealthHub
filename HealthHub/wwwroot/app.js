@@ -95,8 +95,9 @@ class HealthHubApp {
         try {
             const query = `
                 query {
-                    getPatients {
-                        id
+                    patients {
+                        nodes {
+                            id
                         firstName
                         lastName
                         fullName
@@ -108,7 +109,7 @@ class HealthHubApp {
             `;
 
             const response = await this.graphqlRequest(query);
-            const patients = response.data.getPatients;
+            const patients = response.data.patients.nodes;
             this.displayPatients(patients);
         } catch (error) {
             this.showError('Chyba při načítání pacientů: ' + error.message);
@@ -131,22 +132,33 @@ class HealthHubApp {
 
         try {
             const query = `
-                query($searchTerm: String) {
-                    getPatients(searchTerm: $searchTerm) {
-                        id
-                        firstName
-                        lastName
-                        fullName
-                        age
-                        lastDiagnosis
-                        createdAt
+                query {
+                    patients {
+                        nodes {
+                            id
+                            firstName
+                            lastName
+                            fullName
+                            age
+                            lastDiagnosis
+                            createdAt
+                        }
                     }
                 }
             `;
 
-            const response = await this.graphqlRequest(query, { searchTerm });
-            const patients = response.data.getPatients;
-            this.displayPatients(patients);
+            const response = await this.graphqlRequest(query);
+            const allPatients = response.data.patients.nodes;
+            
+            // Filter patients client-side
+            const filteredPatients = allPatients.filter(patient =>
+                patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                patient.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (patient.lastDiagnosis && patient.lastDiagnosis.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
+            
+            this.displayPatients(filteredPatients);
         } catch (error) {
             this.showError('Chyba při hledání pacientů: ' + error.message);
         } finally {
@@ -160,7 +172,7 @@ class HealthHubApp {
         try {
             const query = `
                 query($id: UUID!) {
-                    getPatient(id: $id) {
+                    patient(id: $id) {
                         id
                         firstName
                         lastName
@@ -179,7 +191,7 @@ class HealthHubApp {
             `;
 
             const response = await this.graphqlRequest(query, { id: patientId });
-            const patient = response.data.getPatient;
+            const patient = response.data.patient;
             this.displayPatientDetail(patient);
         } catch (error) {
             this.showError('Chyba při načítání detailu pacienta: ' + error.message);
