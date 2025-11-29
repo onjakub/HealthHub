@@ -70,6 +70,9 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// CORS services (required when using app.UseCors)
+builder.Services.AddCors();
+
 // GraphQL
 builder.Services
     .AddGraphQLServer()
@@ -82,7 +85,6 @@ builder.Services
 
 // Static files for React frontend
 builder.Services.AddRouting();
-builder.Services.AddControllers();
 
 // Configure static files to serve React build
 builder.Services.Configure<StaticFileOptions>(options =>
@@ -173,8 +175,7 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-// API controllers
-app.MapControllers();
+// No MVC controllers are used; GraphQL and minimal APIs are mapped below
 
 // Simple token issuing endpoint for demo purposes
 app.MapPost("/auth/token", (HttpContext context) =>

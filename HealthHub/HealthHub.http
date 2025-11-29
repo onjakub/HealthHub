@@ -73,7 +73,15 @@ Content-Type: {{ContentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "query": "mutation($input: AddDiagnosticResultInput!) { addDiagnosticResult(command: $input) { id patientId diagnosis notes timestampUtc } }",
+  "query": "mutation($input: AddDiagnosticResultCommandInput!) { 
+  addDiagnosticResult(command: $input) { 
+    id
+    patientId
+    diagnosis
+    notes
+    timestampUtc 
+  } 
+}",
   "variables": {
     "input": {
       "patientId": "00000000-0000-0000-0000-000000000000",
@@ -89,7 +97,11 @@ Content-Type: {{ContentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "query": "mutation($input: UpdatePatientInput!) { updatePatient(command: $input) { id firstName lastName fullName age } }",
+  "query": "mutation($input: UpdatePatientCommandInput!) { 
+  updatePatient(command: $input) { 
+    id firstName lastName fullName age 
+    } 
+}",
   "variables": {
     "input": {
       "patientId": "00000000-0000-0000-0000-000000000000",
@@ -105,7 +117,12 @@ Content-Type: {{ContentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "query": "query($patientId: UUID!) { getPatientDiagnosticResults(patientId: $patientId) { id diagnosis notes timestampUtc } }",
+  "query": "query($patientId: UUID!) { 
+  patientDiagnosticResults(patientId: $patientId) 
+  { 
+    id diagnosis notes timestampUtc 
+  } 
+}",
   "variables": {
     "patientId": "00000000-0000-0000-0000-000000000000"
   }
