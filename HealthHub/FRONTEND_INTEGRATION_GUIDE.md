@@ -180,3 +180,10 @@ The application can be deployed as a single unit:
 4. Run `dotnet HealthHub.dll`
 
 For container deployment, use the provided Dockerfile which includes both frontend and backend.
+
+## Poznámka: adresář `chunks`
+
+- Co to je: `chunks/` obsahuje dočasné JavaScriptové „chunky“ generované Next.js (Turbopack/Webpack) v průběhu vývoje nebo při bězích nástrojů. Typicky soubory jako `turbopack-*.js`.
+- K čemu slouží: jde o runtime artefakty pro dev/server bundler (HMR, tracing apod.). Backend je nepotřebuje pro běh produkce.
+- Je bezpečné ho smazat?: Ano. Není součástí zdrojového kódu ani produkčního buildu. Pokud se znovu objeví, vytvořil ho dev server/bundler a lze ho ignorovat.
+- Verzování: adresář `HealthHub/chunks/` je přidán do `.gitignore`, aby se omylem necommitoval.

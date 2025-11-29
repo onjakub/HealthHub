@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Application" />
+    <Folder Include="chunks\" />
     <Folder Include="wwwroot" />
   </ItemGroup>
 
@@ -28,6 +29,16 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="wwwroot\app\globals.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\app\layout.tsx" />
+      <_ContentIncludedByDefault Remove="wwwroot\app\page.tsx" />
+      <_ContentIncludedByDefault Remove="wwwroot\app\patient\[id]\page.tsx" />
+      <_ContentIncludedByDefault Remove="wwwroot\lib\graphql-client.ts" />
+      <_ContentIncludedByDefault Remove="wwwroot\lib\queries.ts" />
+      <_ContentIncludedByDefault Remove="wwwroot\patients\index.html" />
     </ItemGroup>
 
 </Project>

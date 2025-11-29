@@ -25,7 +25,7 @@ Content-Type: {{ContentType}}
 
 ### 3. Nastavení autentizačního tokenu
 // VLOŽTE ZDE TOKEN Z REQUESTU #2:
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImV4cCI6MTc2NDQxMzUyNywiaXNzIjoiSGVhbHRoSHViIiwiYXVkIjoiSGVhbHRoSHViQXVkaWVuY2UifQ.Gju_xdgUD5rWIGMfbj3B9T4RbYM0kh0WH7qaySMQaQs
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImV4cCI6MTc2NDQ2Nzk1MywiaXNzIjoiSGVhbHRoSHViIiwiYXVkIjoiSGVhbHRoSHViQXVkaWVuY2UifQ.0SGlLp9-QF-g2dXYMRuenqbTMQFJNDSMqVpGEzlNRl4
 
 ### 4. GraphQL - Získání všech pacientů
 POST {{HealthHub_HostAddress}}/graphql
@@ -54,7 +54,10 @@ Content-Type: {{ContentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "query": "mutation($input: CreatePatientInput!) { createPatient(command: $input) { id firstName lastName fullName age } }",
+  "query": "mutation($input: CreatePatientCommandInput!) { 
+  createPatient(command: $input) 
+  { id firstName lastName fullName age } 
+}",
   "variables": {
     "input": {
       "firstName": "Jan",
@@ -122,7 +125,7 @@ Authorization: Bearer {{authToken}}
   }
 }
 
-### 11. Test bez autentizace (mělo by vrátit 401)
+### 11. Test bez autentizace (mělo by vrátit AUTH_NOT_AUTHORIZED)
 POST {{HealthHub_HostAddress}}/graphql
 Content-Type: {{ContentType}}
 
@@ -130,7 +133,7 @@ Content-Type: {{ContentType}}
   "query": "query { patients { nodes { id firstName } } }"
 }
 
-### 12. Test s neplatným tokenem (mělo by vrátit 401)
+### 12. Test s neplatným tokenem (mělo by vrátit AUTH_NOT_AUTHORIZED)
 POST {{HealthHub_HostAddress}}/graphql
 Content-Type: {{ContentType}}
 Authorization: Bearer invalid-token

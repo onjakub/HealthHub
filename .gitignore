@@ -3,3 +3,16 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Frontend (Next.js) artifacts – not for source control
+Frontend/.next/
+Frontend/out/
+Frontend/node_modules/
+
+# Turbopack/dev runtime chunks accidentally created near backend
+HealthHub/chunks/
+
+# OS/IDE
+.DS_Store
+.idea/
+.vscode/

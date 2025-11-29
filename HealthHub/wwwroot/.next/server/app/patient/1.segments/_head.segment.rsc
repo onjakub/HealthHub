@@ -1,8 +1,0 @@
-1:"$Sreact.fragment"
-2:I[51543,["/_next/static/chunks/2fc00312c6e14d84.js","/_next/static/chunks/e75f42ec1cfad018.js"],"ViewportBoundary"]
-4:I[51543,["/_next/static/chunks/2fc00312c6e14d84.js","/_next/static/chunks/e75f42ec1cfad018.js"],"MetadataBoundary"]
-5:"$Sreact.suspense"
-7:I[15157,["/_next/static/chunks/2fc00312c6e14d84.js","/_next/static/chunks/e75f42ec1cfad018.js"],"IconMark"]
-0:{"buildId":"XKMMI19V_mHCqcs_49eUZ","rsc":["$","$1","h",{"children":[null,["$","$L2",null,{"children":"$@3"}],["$","div",null,{"hidden":true,"children":["$","$L4",null,{"children":["$","$5",null,{"name":"Next.Metadata","children":"$@6"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"loading":null,"isPartial":false}
-3:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
-6:[["$","title","0",{"children":"HealthHub - Patient Management System"}],["$","meta","1",{"name":"description","content":"Comprehensive healthcare patient management and diagnostic tracking system"}],["$","meta","2",{"name":"generator","content":"v0.app"}],["$","link","3",{"rel":"icon","href":"/icon-light-32x32.png","media":"(prefers-color-scheme: light)"}],["$","link","4",{"rel":"icon","href":"/icon-dark-32x32.png","media":"(prefers-color-scheme: dark)"}],["$","link","5",{"rel":"icon","href":"/icon.svg","type":"image/svg+xml"}],["$","link","6",{"rel":"apple-touch-icon","href":"/apple-icon.png"}],["$","$L7","7",{}]]

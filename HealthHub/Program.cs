@@ -84,6 +84,13 @@ builder.Services
 builder.Services.AddRouting();
 builder.Services.AddControllers();
 
+// Configure static files to serve React build
+builder.Services.Configure<StaticFileOptions>(options =>
+{
+    options.ServeUnknownFileTypes = false;
+    // Cache configuration will be applied after app is built
+});
+
 // HTTPS redirection disabled for development - application runs on HTTP only
 // builder.Services.AddHttpsRedirection(options =>
 // {
@@ -106,16 +113,62 @@ if (app.Environment.IsDevelopment())
 
 // app.UseHttpsRedirection();
 app.UseDefaultFiles();
-app.UseStaticFiles();
 
-// Enable CORS for React development server
-if (app.Environment.IsDevelopment())
+// Configure static files with caching
+app.UseStaticFiles(new StaticFileOptions
 {
-    app.UseCors(policy => policy
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader());
-}
+    OnPrepareResponse = context =>
+    {
+        // Cache static files for 1 hour in production
+        if (!context.Context.Request.Path.StartsWithSegments("/api") &&
+            !context.Context.Request.Path.StartsWithSegments("/graphql"))
+        {
+            var headers = context.Context.Response.GetTypedHeaders();
+            headers.CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue
+            {
+                Public = true,
+                MaxAge = app.Environment.IsDevelopment() ? TimeSpan.Zero : TimeSpan.FromHours(1)
+            };
+        }
+    }
+});
+
+// Enable CORS for React frontend
+app.UseCors(policy => policy
+    .WithOrigins(
+        "http://localhost:3000",  // React dev server
+        "http://localhost:3001",  // Alternative React dev port
+        "https://localhost:3000", // HTTPS dev server
+        "https://localhost:3001"  // Alternative HTTPS dev port
+    )
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+    .AllowCredentials());
+
+// SPA routing middleware - handle client-side routing
+app.Use(async (context, next) =>
+{
+    await next();
+
+    // If it's an API or GraphQL request, don't handle as SPA
+    if (context.Request.Path.StartsWithSegments("/api") ||
+        context.Request.Path.StartsWithSegments("/graphql") ||
+        context.Request.Path.StartsWithSegments("/health"))
+    {
+        return;
+    }
+
+    // For non-API routes and if the file doesn't exist, serve index.html
+    if (context.Response.StatusCode == 404 &&
+        !System.IO.Path.HasExtension(context.Request.Path.Value) &&
+        !context.Request.Path.Value?.StartsWith("/api") == true &&
+        !context.Request.Path.Value?.StartsWith("/graphql") == true)
+    {
+        context.Request.Path = "/index.html";
+        context.Response.StatusCode = 200;
+        await next();
+    }
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
