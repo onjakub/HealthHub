@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Application" />
-    <Folder Include="chunks\" />
     <Folder Include="wwwroot" />
   </ItemGroup>
 
@@ -39,6 +38,7 @@
       <_ContentIncludedByDefault Remove="wwwroot\lib\graphql-client.ts" />
       <_ContentIncludedByDefault Remove="wwwroot\lib\queries.ts" />
       <_ContentIncludedByDefault Remove="wwwroot\patients\index.html" />
+      <_ContentIncludedByDefault Remove="wwwroot\404\index.html" />
     </ItemGroup>
 
 </Project>
