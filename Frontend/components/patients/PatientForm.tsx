@@ -15,9 +15,11 @@ interface PatientFormProps {
   patient?: Patient | null
   onSuccess: () => void
   onCancel: () => void
+  // Switch the form from editing existing patient to adding a new one
+  onResetToAdd?: () => void
 }
 
-export default function PatientForm({ patient, onSuccess, onCancel }: PatientFormProps) {
+export default function PatientForm({ patient, onSuccess, onCancel, onResetToAdd }: PatientFormProps) {
   const normalizeDate = (value: string | undefined): string => {
     if (!value) return ''
     // If already in YYYY-MM-DD, keep it
@@ -25,6 +27,15 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
     // Try to parse other date strings
     const d = new Date(value)
     if (Number.isNaN(d.getTime())) return ''
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  // Helper to get today's date in YYYY-MM-DD for <input type="date"> max
+  const todayStr = (): string => {
+    const d = new Date()
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const dd = String(d.getDate()).padStart(2, '0')
@@ -49,6 +60,27 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
 
   const loading = creating || updating
 
+  const [dateError, setDateError] = useState<string>('')
+
+  // Robust future-date validation using calendar (UTC) comparison
+  const parseYmdToUtc = (ymd: string): number | null => {
+    // expects YYYY-MM-DD
+    const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!m) return null
+    const y = Number(m[1])
+    const mo = Number(m[2]) - 1
+    const d = Number(m[3])
+    return Date.UTC(y, mo, d)
+  }
+
+  const isDateInFuture = (ymd: string): boolean => {
+    const ts = parseYmdToUtc(ymd)
+    if (ts == null) return false
+    const now = new Date()
+    const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+    return ts > todayUtc
+  }
+
   // Load detailed patient with diagnostic results when editing existing patient
   const {
     data: patientDetailData,
@@ -72,6 +104,14 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Validate date is not in the future
+    if (formData.dateOfBirth) {
+      const dob = formData.dateOfBirth
+      if (isDateInFuture(dob)) {
+        setDateError('Date of birth cannot be in the future.')
+        return
+      }
+    }
     
     if (patient?.id) {
       await updatePatient({
@@ -98,10 +138,27 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    // If changing date, validate against future date
+    if (name === 'dateOfBirth') {
+      if (value && isDateInFuture(value)) {
+        setDateError('Date of birth cannot be in the future.')
+      } else {
+        setDateError('')
+      }
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
+  }
+
+  const handleResetToAdd = () => {
+    // Clear local form state
+    setFormData({ firstName: '', lastName: '', dateOfBirth: '' })
+    // Notify parent to drop selected patient but keep form view
+    if (onResetToAdd) onResetToAdd()
   }
 
   return (
@@ -147,15 +204,19 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
             name="dateOfBirth"
             value={formData.dateOfBirth}
             onChange={handleChange}
+            max={todayStr()}
             required
             className="form-input"
           />
+          {dateError && (
+            <p className="text-sm text-red-600 mt-1">{dateError}</p>
+          )}
         </div>
 
         <div className="flex gap-4 pt-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!dateError}
             className="btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : (patient?.id ? 'Update Patient' : 'Add Patient')}
@@ -167,6 +228,15 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
           >
             Cancel
           </button>
+          {patient?.id && (
+            <button
+              type="button"
+              onClick={handleResetToAdd}
+              className="btn-secondary"
+            >
+              Reset
+            </button>
+          )}
         </div>
       </form>
 

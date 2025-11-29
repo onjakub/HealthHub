@@ -2,26 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* High-contrast light theme defaults */
-  --foreground-rgb: 17, 24, 39; /* text-gray-900 */
-  --background-start-rgb: 249, 250, 251; /* bg-gray-50 */
-  --background-end-rgb: 255, 255, 255; /* white */
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  /* Solid background for better readability */
-  background-color: rgb(var(--background-start-rgb));
-}
+/* Rollback globals to rely on Tailwind utilities set in layout/body.
+   We intentionally remove CSS variables and body overrides to avoid
+   unexpected cascade changes across the app. */
 
 /* Custom styles for HealthHub */
 .patient-card {

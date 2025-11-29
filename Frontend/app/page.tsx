@@ -57,7 +57,11 @@ export default function Home() {
                 Patient List
               </button>
               <button
-                onClick={() => setCurrentView('form')}
+                onClick={() => {
+                  // Ensure the form opens in "add new" mode
+                  setSelectedPatient(null)
+                  setCurrentView('form')
+                }}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   currentView === 'form'
                     ? 'bg-blue-100 text-blue-700'
@@ -89,6 +93,11 @@ export default function Home() {
               onCancel={() => {
                 setSelectedPatient(null)
                 setCurrentView('list')
+              }}
+              onResetToAdd={() => {
+                // Switch the form into "add new" mode without leaving the form view
+                setSelectedPatient(null)
+                setCurrentView('form')
               }}
             />
           )}
