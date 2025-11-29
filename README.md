@@ -1,117 +1,152 @@
-# HealthHub - Full Stack Patient Management Application
+# HealthHub - Full Stack Patient Management System
 
-Aplikace pro správu a zobrazování dat pacientů s GraphQL API a jednoduchým uživatelským rozhraním. Implementuje Pragmatic Clean Architecture s DDD + CQRS patternem.
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![GraphQL](https://img.shields.io/badge/GraphQL-HotChocolate-E10098?logo=graphql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
 
-## Architektura
+A comprehensive full-stack patient management application with modern architecture, GraphQL API, and TypeScript React frontend. The application implements Pragmatic Clean Architecture with DDD and CQRS patterns.
 
-Aplikace je postavena jako modulární monolit s následujícími vrstvami:
+## 🚀 Quick Start
 
-### Domain Layer (Core Business Logic)
-- **Entities**: `Patient`, `DiagnosticResult` s domain logikou
-- **Value Objects**: `PatientName`, `Diagnosis` pro validaci dat
-- **Repository Interfaces**: `IPatientRepository`, `IDiagnosticResultRepository`
+### Prerequisites
+- **.NET 10.0 SDK**
+- **Node.js 18+** and npm
+- **Docker** and Docker Compose (optional)
+- **PostgreSQL** (locally or in Docker)
 
-### Application Layer (Use Cases)
-- **Commands**: `CreatePatientCommand`, `UpdateDiagnosisCommand` atd.
-- **Queries**: `GetPatientsQuery`, `GetPatientDetailsQuery` atd.
-- **Handlers**: Command a Query handlery implementující CQRS pattern
-- **DTOs**: Data transfer objects pro komunikaci mezi vrstvami
+### Running with Docker Compose (recommended)
 
-### Infrastructure Layer (External Concerns)
-- **Data Access**: EF Core s PostgreSQL
-- **Repositories**: Implementace repository interfaces
-- **Authentication**: JWT-based authentication
-
-### Presentation Layer (API & Frontend)
-- **GraphQL API**: HotChocolate GraphQL server
-- **Frontend**: Jednoduché HTML/CSS/JavaScript rozhraní
-
-## Funkce
-
-### Backend (GraphQL API)
-- **Queries**:
-  - `getPatients`: Seznam pacientů s filtrováním a stránkováním
-  - `getPatient`: Detail pacienta s diagnostickou historií
-  - `getPatientDiagnosticResults`: Diagnostické výsledky pacienta
-
-- **Mutations**:
-  - `createPatient`: Vytvoření nového pacienta
-  - `updatePatient`: Aktualizace údajů pacienta
-  - `addDiagnosticResult`: Přidání diagnostického výsledku
-  - `updateDiagnosticResult`: Aktualizace diagnostického výsledku
-  - `deletePatient`: Smazání pacienta
-
-### Frontend
-- Přihlášení pomocí JWT tokenu
-- Zobrazení seznamu pacientů s vyhledáváním
-- Detailní zobrazení pacienta s diagnostickou historií
-- Formulář pro přidání nového pacienta
-- Responzivní design
-
-## Technologie
-
-### Backend
-- **.NET 10.0** s HotChocolate GraphQL
-- **Entity Framework Core** s PostgreSQL
-- **JWT Authentication**
-- **Docker** pro kontejnerizaci
-
-### Frontend
-- **HTML5**, **CSS3**, **JavaScript (ES6+)**
-- **GraphQL Client** s fetch API
-- Responzivní design s CSS Grid/Flexbox
-
-## Instalace a spuštění
-
-### Prerekvizity
-- Docker a Docker Compose
-- .NET 10.0 SDK (pro lokální vývoj)
-
-### Spuštění s Docker Compose
-
-1. Naklonujte repository:
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd HealthHub
-```
 
-2. Spusťte aplikaci:
-```bash
+# Start the entire application
 docker-compose up -d
 ```
 
-3. Aplikace bude dostupná na:
-   - Frontend: http://localhost:8080
-   - GraphQL API: http://localhost:8080/graphql
-   - OpenAPI: http://localhost:8080/openapi (pouze v development)
+The application will be available at:
+- **Frontend**: http://localhost:8080
+- **GraphQL API**: http://localhost:8080/graphql
+- **Health check**: http://localhost:8080/health
 
-### Lokální vývoj
+### Local Development
 
-1. Restore dependencies:
-```bash
-cd HealthHub
-dotnet restore
-```
-
-2. Spusťte databázi:
+#### 1. Start the database
 ```bash
 docker-compose up healthhub-db -d
 ```
 
-3. Spusťte aplikaci:
+#### 2. Start the backend
 ```bash
+cd HealthHub
+dotnet restore
+dotnet run
+```
+Backend runs on: **http://localhost:5023**
+
+#### 3. Start the frontend (development mode)
+```bash
+cd Frontend
+npm install
+npm run dev
+```
+Frontend runs on: **http://localhost:3000**
+
+### Production Build
+```bash
+# Build the frontend
+cd Frontend
+npm run build
+
+# Run the backend with integrated frontend
+cd ..
 dotnet run
 ```
 
-## Konfigurace
+## 📋 Features
+
+### ✅ Implemented Features
+- **Patient Management** - CRUD operations for patients
+- **Diagnostic Results** - Adding and managing diagnoses
+- **GraphQL API** - Modern API with filtering and sorting
+- **JWT Authentication** - Secure login
+- **Responsive Design** - Optimized for mobile devices
+- **Hot Reload** - Fast development with live updates
+
+### 🔄 GraphQL Operations
+- **Queries**: `patients`, `patient`, `patientDiagnosticResults`
+- **Mutations**: `createPatient`, `updatePatient`, `addDiagnosticResult`, `deletePatient`
+
+## 🏗️ Architecture
+
+The application is built as a modular monolith with the following layers:
+
+### Domain Layer (Core Business Logic)
+- **Entities**: `Patient`, `DiagnosticResult` with domain logic
+- **Value Objects**: `PatientName`, `Diagnosis` for data validation
+- **Repository Interfaces**: `IPatientRepository`, `IDiagnosticResultRepository`
+
+### Application Layer (Use Cases)
+- **Commands**: `CreatePatientCommand`, `UpdateDiagnosisCommand`, etc.
+- **Queries**: `GetPatientsQuery`, `GetPatientDetailsQuery`, etc.
+- **Handlers**: Command and Query handlers implementing CQRS pattern
+- **DTOs**: Data transfer objects for inter-layer communication
+
+### Infrastructure Layer (External Concerns)
+- **Data Access**: EF Core with PostgreSQL
+- **Repositories**: Repository interface implementations
+- **Authentication**: JWT-based authentication
+
+### Presentation Layer (API & Frontend)
+- **GraphQL API**: HotChocolate GraphQL server
+- **Frontend**: TypeScript React with Next.js
+
+## 🛠️ Technologies
+
+### Backend
+- **.NET 10.0** with HotChocolate GraphQL
+- **Entity Framework Core** with PostgreSQL
+- **JWT Authentication**
+- **Docker** for containerization
+
+### Frontend
+- **React 18** with TypeScript
+- **Next.js 14** with App Router
+- **Apollo Client** for GraphQL
+- **Tailwind CSS** for styling
+- **Responsive design** with mobile-first approach
+
+## 📁 Project Structure
+
+```
+HealthHub/
+├── Frontend/                 # TypeScript React frontend
+│   ├── app/                 # Next.js App Router
+│   ├── components/          # React components
+│   ├── lib/                 # Utilities and configuration
+│   └── package.json         # Frontend dependencies
+├── HealthHub/               # ASP.NET Core backend
+│   ├── Application/         # CQRS handlers
+│   ├── Domain/              # Business entities
+│   ├── Infrastructure/      # Data access
+│   ├── Presentation/        # GraphQL API
+│   ├── wwwroot/             # Built frontend
+│   └── Program.cs           # Main entry point
+├── compose.yaml             # Docker Compose configuration
+└── README.md               # This file
+```
+
+## ⚙️ Configuration
 
 ### Environment Variables
 - `DB_CONNECTION`: PostgreSQL connection string
-- `JWT_KEY`: Secret key pro JWT tokeny
+- `JWT_KEY`: Secret key for JWT tokens
 - `ASPNETCORE_ENVIRONMENT`: Environment (Development/Production)
 
-### Default Configuration
-Výchozí konfigurace je v `appsettings.json`:
+### Default Configuration (`appsettings.json`)
 ```json
 {
   "ConnectionStrings": {
@@ -126,92 +161,55 @@ Výchozí konfigurace je v `appsettings.json`:
 }
 ```
 
-## Použití
+## 📚 Documentation
 
-### Autentizace
-1. Otevřete aplikaci na http://localhost:8080
-2. Přihlaste se s libovolným uživatelským jménem a heslem
-3. Token je automaticky uložen v localStorage
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed technical architecture
+- **[API.md](API.md)** - Complete GraphQL API reference
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guides
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow
 
-### GraphQL Queries
+## 🧪 Testing
 
-**Získání seznamu pacientů:**
-```graphql
-query {
-  getPatients {
-    id
-    firstName
-    lastName
-    fullName
-    age
-    lastDiagnosis
-    createdAt
-  }
-}
-```
-
-**Vytvoření pacienta:**
-```graphql
-mutation {
-  createPatient(command: {
-    firstName: "Jan"
-    lastName: "Novák"
-    dateOfBirth: "1980-01-01"
-  }) {
-    id
-    fullName
-    age
-  }
-}
-```
-
-## Testování
-
-Pro spuštění testů:
 ```bash
+# Run tests
 cd HealthHub
 dotnet test
+
+# TypeScript checking
+cd Frontend
+npm run type-check
+
+# Linting
+npm run lint
 ```
 
-## Docker
+## 🐳 Docker
 
 ### Build image:
 ```bash
 docker build -t healthhub -f HealthHub/Dockerfile .
 ```
 
-### Spuštění s PostgreSQL:
+### Run with PostgreSQL:
 ```bash
 docker-compose up -d
 ```
 
-## Bezpečnost
+## 🔒 Security
 
-- JWT-based authentication
-- Input validation na všech úrovních
+- JWT-based authentication with 12-hour expiration
+- Input validation at all levels
 - Secure configuration management
-- Health checks pro monitoring
+- Health checks for monitoring
 
-## Vývoj
+## 🤝 Contributing
 
-### Project Structure
-```
-HealthHub/
-├── Domain/           # Domain layer
-├── Application/      # Application layer (CQRS)
-├── Infrastructure/   # Infrastructure layer
-├── Presentation/     # Presentation layer (GraphQL + Frontend)
-├── Tests/           # Unit a integration tests
-└── wwwroot/         # Static files (frontend)
-```
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed contribution guidelines.
 
-### Code Conventions
-- Clean Architecture principles
-- Domain-Driven Design
-- CQRS pattern
-- Dependency Injection
-- Async/await pattern
+## 📄 License
 
-## License
+This project is created for demonstration purposes.
 
-Tento projekt je vytvořen pro demonstrační účely.
+---
+
+**HealthHub** - Modern patient management solution with GraphQL API and TypeScript React frontend.
