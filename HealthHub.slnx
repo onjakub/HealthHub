@@ -3,4 +3,5 @@
     <File Path="compose.yaml" />
   </Folder>
   <Project Path="HealthHub/HealthHub.csproj" />
+  <Project Path="McpHealtHubServer/McpHealtHubServer.csproj" />
 </Solution>

@@ -56,4 +56,9 @@ public class PatientRepository : IPatientRepository
     {
         return await _context.Patients.AnyAsync(p => p.Id == id, cancellationToken);
     }
+
+    public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients.CountAsync(cancellationToken);
+    }
 }

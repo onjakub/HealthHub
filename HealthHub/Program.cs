@@ -80,8 +80,9 @@ builder.Services
     .AddSorting()
     .AddProjections();
 
-// Static files for simple frontend
+// Static files for React frontend
 builder.Services.AddRouting();
+builder.Services.AddControllers();
 
 // HTTPS redirection disabled for development - application runs on HTTP only
 // builder.Services.AddHttpsRedirection(options =>
@@ -107,8 +108,20 @@ if (app.Environment.IsDevelopment())
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
+// Enable CORS for React development server
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(policy => policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader());
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+// API controllers
+app.MapControllers();
 
 // Simple token issuing endpoint for demo purposes
 app.MapPost("/auth/token", (HttpContext context) =>
@@ -151,5 +164,9 @@ app.MapGraphQL("/graphql");
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+
+// SPA fallback: any non-API, non-static route serves index.html from wwwroot
+// This ensures React Router works correctly
+app.MapFallbackToFile("/index.html");
 
 app.Run();
