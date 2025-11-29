@@ -3,16 +3,15 @@ import { gql } from '@apollo/client'
 export const GET_PATIENTS = gql`
   query GetPatients {
     patients {
-      items {
+      nodes {
         id
         firstName
         lastName
-        dateOfBirth
-        email
-        phoneNumber
-        address
+        fullName
+        age
+        lastDiagnosis
         createdAt
-        updatedAt
+        dateOfBirth
       }
       pageInfo {
         hasNextPage
@@ -28,12 +27,17 @@ export const GET_PATIENT = gql`
       id
       firstName
       lastName
+      fullName
       dateOfBirth
-      email
-      phoneNumber
-      address
+      age
+      lastDiagnosis
       createdAt
-      updatedAt
+      diagnosticResults {
+        id
+        diagnosis
+        notes
+        timestampUtc
+      }
     }
   }
 `
@@ -42,12 +46,9 @@ export const GET_PATIENT_DIAGNOSTIC_RESULTS = gql`
   query GetPatientDiagnosticResults($patientId: UUID!, $limit: Int) {
     patientDiagnosticResults(patientId: $patientId, limit: $limit) {
       id
-      patientId
       diagnosis
-      description
-      date
-      severity
-      createdAt
+      notes
+      timestampUtc
     }
   }
 `
@@ -58,7 +59,9 @@ export const CREATE_PATIENT = gql`
       id
       firstName
       lastName
+      fullName
       dateOfBirth
+      age
     }
   }
 `
@@ -69,26 +72,27 @@ export const UPDATE_PATIENT = gql`
       id
       firstName
       lastName
+      fullName
       dateOfBirth
+      age
     }
   }
 `
 
 export const DELETE_PATIENT = gql`
-  mutation DeletePatient($command: DeletePatientCommandInput!) {
+  mutation DeletePatient($command: DeletePatientInput!) {
     deletePatient(command: $command)
   }
 `
 
 export const ADD_DIAGNOSTIC_RESULT = gql`
-  mutation AddDiagnosticResult($input: AddDiagnosticResultInput!) {
-    addDiagnosticResult(input: $input) {
-      id
-      patientId
-      diagnosis
-      description
-      date
-      severity
-    }
-  }
+mutation($input: AddDiagnosticResultCommandInput!) { 
+  addDiagnosticResult(command: $input) { 
+    id
+    patientId
+    diagnosis
+    notes
+    timestampUtc 
+  } 
+}
 `

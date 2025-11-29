@@ -18,10 +18,23 @@ interface PatientFormProps {
 }
 
 export default function PatientForm({ patient, onSuccess, onCancel }: PatientFormProps) {
+  const normalizeDate = (value: string | undefined): string => {
+    if (!value) return ''
+    // If already in YYYY-MM-DD, keep it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+    // Try to parse other date strings
+    const d = new Date(value)
+    if (Number.isNaN(d.getTime())) return ''
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
   const [formData, setFormData] = useState<Patient>({
     firstName: patient?.firstName || '',
     lastName: patient?.lastName || '',
-    dateOfBirth: patient?.dateOfBirth || '',
+    dateOfBirth: normalizeDate(patient?.dateOfBirth),
   })
 
   const [createPatient, { loading: creating }] = useMutation(CREATE_PATIENT, {

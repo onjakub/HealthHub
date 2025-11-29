@@ -23,7 +23,7 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
   if (loading) return <div className="text-center py-8">Loading patients...</div>
   if (error) return <div className="text-center py-8 text-red-600">Error loading patients: {error.message}</div>
 
-  const patients = data?.patients?.items || []
+  const patients = data?.patients?.nodes || []
   
   const filteredPatients = patients.filter((patient: Patient) =>
     `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
