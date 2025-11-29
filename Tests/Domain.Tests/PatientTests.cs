@@ -2,7 +2,7 @@ using HealthHub.Domain.Entities;
 using HealthHub.Domain.ValueObjects;
 using Xunit;
 
-namespace HealthHub.Tests.Domain.Tests;
+namespace Domain.Tests;
 
 public class PatientTests
 {

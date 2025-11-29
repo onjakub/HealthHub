@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../HealthHub.csproj" />
+    <ProjectReference Include="../../HealthHub/HealthHub.csproj" />
   </ItemGroup>
 
 </Project>
