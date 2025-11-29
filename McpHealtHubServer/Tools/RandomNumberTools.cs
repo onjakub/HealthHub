@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using ModelContextProtocol.Server;
 
+namespace McpHealtHubServer.Tools;
+
 /// <summary>
 /// Sample MCP tools for demonstration purposes.
 /// These tools can be invoked by MCP clients to perform various operations.

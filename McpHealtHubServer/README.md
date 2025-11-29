@@ -1,7 +1,6 @@
-# MCP Server
+# McpHealtHubServer - HealthHub MCP Server
 
-This README was created using the C# MCP server project template.
-It demonstrates how you can easily create an MCP server using C# and publish it as a NuGet package.
+This MCP server provides access to patient information from the HealthHub system. It includes tools for retrieving patient data, diagnostic results, and searching patient records.
 
 The MCP server is built as a self-contained application and does not require the .NET runtime to be installed on the target machine.
 However, since it is self-contained, it must be built for each target platform separately.
@@ -49,9 +48,47 @@ To test this MCP server from source code (locally) without using a built MCP ser
 }
 ```
 
+## Available Tools
+
+### Patient Information Tools
+
+- **get_patients** - Gets a list of patients with optional search and pagination
+  - Parameters: `searchTerm` (optional), `page` (optional), `pageSize` (optional)
+  - Example: "Get patients with search term 'John'"
+
+- **get_patient_by_id** - Gets detailed information about a specific patient by ID
+  - Parameters: `patientId` (required)
+  - Example: "Get patient details for ID 123e4567-e89b-12d3-a456-426614174000"
+
+- **get_patient_diagnostic_results** - Gets diagnostic results for a specific patient
+  - Parameters: `patientId` (required), `limit` (optional)
+  - Example: "Get diagnostic results for patient 123e4567-e89b-12d3-a456-426614174000"
+
+- **search_patients** - Searches for patients by name or diagnosis with advanced filtering
+  - Parameters: `searchTerm` (required), `minAge` (optional), `maxAge` (optional), `hasRecentDiagnosis` (optional)
+  - Example: "Search for patients named 'Smith' aged between 30 and 50"
+
+### Utility Tools
+
+- **get_random_number** - Generates a random number between specified minimum and maximum values
+  - Parameters: `min` (optional, default 0), `max` (optional, default 100)
+  - Example: "Give me 3 random numbers"
+
+## Configuration
+
+The MCP server requires the following environment variables:
+
+- `HEALTHHUB_API_URL` - URL of the HealthHub GraphQL API (default: http://localhost:5000)
+- `HEALTHHUB_JWT_TOKEN` - JWT token for API authentication (required for production)
+
 ## Testing the MCP Server
 
-Once configured, you can ask Copilot Chat for a random number, for example, `Give me 3 random numbers`. It should prompt you to use the `get_random_number` tool on the `McpHealtHubServer` MCP server and show you the results.
+Once configured, you can ask Copilot Chat for patient information, for example:
+- "Get a list of all patients"
+- "Find patients with recent diagnoses"
+- "Show me diagnostic results for patient John Doe"
+
+You can also test the random number tool: `Give me 3 random numbers`. It should prompt you to use the `get_random_number` tool on the `McpHealtHubServer` MCP server and show you the results.
 
 ## Publishing to NuGet.org
 
