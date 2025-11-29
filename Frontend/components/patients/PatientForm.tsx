@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation } from '@apollo/client'
-import { CREATE_PATIENT, UPDATE_PATIENT } from '../../lib/queries'
+import { useMutation, useQuery } from '@apollo/client'
+import { CREATE_PATIENT, UPDATE_PATIENT, GET_PATIENT, ADD_DIAGNOSTIC_RESULT } from '../../lib/queries'
 
 interface Patient {
   id?: string
@@ -48,6 +48,27 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
   })
 
   const loading = creating || updating
+
+  // Load detailed patient with diagnostic results when editing existing patient
+  const {
+    data: patientDetailData,
+    loading: loadingPatientDetail,
+    error: patientDetailError,
+    refetch: refetchPatientDetail,
+  } = useQuery(GET_PATIENT, {
+    skip: !patient?.id,
+    variables: { id: patient?.id },
+    fetchPolicy: 'cache-and-network',
+  })
+
+  const [addDiagnosisForm, setAddDiagnosisForm] = useState({ diagnosis: '', notes: '' })
+  const [addDiagnosticResult, { loading: addingDiagnosis }] = useMutation(ADD_DIAGNOSTIC_RESULT, {
+    onCompleted: async () => {
+      setAddDiagnosisForm({ diagnosis: '', notes: '' })
+      // Refresh the patient diagnostic results list
+      if (patient?.id) await refetchPatientDetail()
+    },
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -148,6 +169,83 @@ export default function PatientForm({ patient, onSuccess, onCancel }: PatientFor
           </button>
         </div>
       </form>
+
+      {patient?.id && (
+        <div className="mt-10">
+          <h3 className="text-lg font-semibold mb-4">Diagnoses</h3>
+          {loadingPatientDetail && (
+            <div className="text-gray-600">Loading diagnoses...</div>
+          )}
+          {patientDetailError && (
+            <div className="text-red-600">Failed to load diagnoses: {patientDetailError.message}</div>
+          )}
+
+          {/* List of diagnostic results */}
+          <div className="space-y-3">
+            {(patientDetailData?.patient?.diagnosticResults || []).map((dr: any) => (
+              <div key={dr.id} className="border rounded p-3 bg-white">
+                <div className="flex justify-between">
+                  <div className="font-medium">{dr.diagnosis}</div>
+                  <div className="text-sm text-gray-500">{new Date(dr.timestampUtc).toLocaleString()}</div>
+                </div>
+                {dr.notes && <div className="text-gray-700 mt-1 whitespace-pre-wrap">{dr.notes}</div>}
+              </div>
+            ))}
+            {(!patientDetailData?.patient?.diagnosticResults || patientDetailData.patient.diagnosticResults.length === 0) && !loadingPatientDetail && (
+              <div className="text-gray-500">No diagnoses yet.</div>
+            )}
+          </div>
+
+          {/* Add new diagnosis */}
+          <div className="mt-6">
+            <h4 className="font-semibold mb-2">Add Diagnosis</h4>
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="form-label" htmlFor="diagnosis">Diagnosis</label>
+                <input
+                  id="diagnosis"
+                  type="text"
+                  className="form-input"
+                  value={addDiagnosisForm.diagnosis}
+                  onChange={(e) => setAddDiagnosisForm({ ...addDiagnosisForm, diagnosis: e.target.value })}
+                  placeholder="Enter diagnosis"
+                />
+              </div>
+              <div>
+                <label className="form-label" htmlFor="notes">Notes</label>
+                <textarea
+                  id="notes"
+                  className="form-input"
+                  value={addDiagnosisForm.notes}
+                  onChange={(e) => setAddDiagnosisForm({ ...addDiagnosisForm, notes: e.target.value })}
+                  placeholder="Optional notes"
+                />
+              </div>
+              <div>
+                <button
+                  type="button"
+                  className="btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={!addDiagnosisForm.diagnosis || addingDiagnosis}
+                  onClick={async () => {
+                    if (!patient?.id) return
+                    await addDiagnosticResult({
+                      variables: {
+                        input: {
+                          patientId: patient.id,
+                          diagnosis: addDiagnosisForm.diagnosis,
+                          notes: addDiagnosisForm.notes || null,
+                        },
+                      },
+                    })
+                  }}
+                >
+                  {addingDiagnosis ? 'Adding...' : 'Add Diagnosis'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
