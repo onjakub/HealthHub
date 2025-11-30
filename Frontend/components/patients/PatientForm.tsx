@@ -234,16 +234,20 @@ export default function PatientForm({ patient, onSuccess, onCancel, onResetToAdd
               Date of Birth
             </span>
           </label>
-          <input
-            type="date"
-            id="dateOfBirth"
-            name="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={handleChange}
-            max={todayStr()}
-            required
-            className="form-input"
-          />
+          <div className="relative">
+            <input
+              type="date"
+              id="dateOfBirth"
+              name="dateOfBirth"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              max={todayStr()}
+              required
+              className="form-input pr-8"
+            />
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+            </div>
+          </div>
           {dateError && (
             <div className="flex items-center gap-2 mt-2 text-red-600">
               <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
