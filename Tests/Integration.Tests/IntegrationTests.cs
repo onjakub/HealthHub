@@ -17,11 +17,45 @@ public class GraphQLIntegrationTests : IDisposable
     public GraphQLIntegrationTests()
     {
         _client = new HttpClient { BaseAddress = new Uri(_baseUrl) };
+        CleanDatabaseAsync().Wait();
     }
 
     public void Dispose()
     {
         _client?.Dispose();
+    }
+
+    private async Task CleanDatabaseAsync()
+    {
+        try
+        {
+            var options = new DbContextOptionsBuilder<HealthHubDbContext>()
+                .UseNpgsql(_testConnectionString)
+                .Options;
+
+            using var context = new HealthHubDbContext(options);
+            
+            // Delete all diagnostic results first (due to foreign key constraints)
+            var diagnosticResults = await context.DiagnosticResults.ToListAsync();
+            if (diagnosticResults.Any())
+            {
+                context.DiagnosticResults.RemoveRange(diagnosticResults);
+                await context.SaveChangesAsync();
+            }
+
+            // Delete all patients
+            var patients = await context.Patients.ToListAsync();
+            if (patients.Any())
+            {
+                context.Patients.RemoveRange(patients);
+                await context.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the test - database might not be available yet
+            Console.WriteLine($"Warning: Could not clean database: {ex.Message}");
+        }
     }
 
     private async Task<string> GetAuthTokenAsync()
@@ -63,6 +97,47 @@ public class GraphQLIntegrationTests : IDisposable
         // Arrange
         var token = await GetAuthTokenAsync();
 
+        // First create a patient to ensure there's data to retrieve
+        var createPatientMutation = @"
+            mutation CreatePatient($input: CreatePatientCommandInput!) {
+                createPatient(command: $input) {
+                    id
+                    firstName
+                    lastName
+                }
+            }
+        ";
+
+        var createPatientVariables = new
+        {
+            input = new
+            {
+                firstName = "GetPatients",
+                lastName = "Test",
+                dateOfBirth = "1990-01-01"
+            }
+        };
+
+        var createPatientRequest = new GraphQLRequest
+        {
+            query = createPatientMutation,
+            variables = createPatientVariables
+        };
+
+        var createPatientJson = JsonSerializer.Serialize(createPatientRequest);
+        var createPatientContent = new StringContent(createPatientJson, Encoding.UTF8, "application/json");
+        
+        var createPatientRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/graphql")
+        {
+            Content = createPatientContent
+        };
+        createPatientRequestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var createPatientResponse = await _client.SendAsync(createPatientRequestMessage);
+        var createPatientResult = await createPatientResponse.Content.ReadFromJsonAsync<GraphQLResponse<CreatePatientResponse>>();
+        Assert.NotNull(createPatientResult?.Data?.CreatePatient);
+
+        // Now get the patients
         var query = @"
             query {
                 patients {
@@ -173,13 +248,109 @@ public class GraphQLIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task CreatePatient_WithValidData_ShouldCreatePatientAndReturnDetails()
+    {
+        // Arrange
+        var token = await GetAuthTokenAsync();
+        
+        var mutation = @"
+            mutation CreatePatient($input: CreatePatientCommandInput!) {
+                createPatient(command: $input) {
+                    id
+                    firstName
+                    lastName
+                    dateOfBirth
+                    age
+                }
+            }
+        ";
+
+        var variables = new
+        {
+            input = new
+            {
+                firstName = "Diagnosis",
+                lastName = "Test",
+                dateOfBirth = "1985-05-15"
+            }
+        };
+
+        var request = new GraphQLRequest
+        {
+            query = mutation,
+            variables = variables
+        };
+
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, "/graphql")
+        {
+            Content = content
+        };
+        requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        // Act
+        var response = await _client.SendAsync(requestMessage);
+        // GraphQL always returns 200, even with errors - don't call EnsureSuccessStatusCode()
+
+        var result = await response.Content.ReadFromJsonAsync<GraphQLResponse<CreatePatientResponse>>();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+        Assert.NotNull(result.Data.CreatePatient);
+        Assert.Equal("Diagnosis", result.Data.CreatePatient.FirstName);
+        Assert.Equal("Test", result.Data.CreatePatient.LastName);
+        Assert.NotEqual(Guid.Empty, result.Data.CreatePatient.Id);
+        Assert.True(result.Data.CreatePatient.Age > 0); // Age should be calculated
+    }
+
+    [Fact]
     public async Task GetPatientById_WithValidId_ShouldReturnPatient()
     {
         // Arrange
         var token = await GetAuthTokenAsync();
         
-        // Use an existing patient ID from the test database
-        var existingPatientId = "01fafaa2-546c-4f64-b84d-516ddee9d276";
+        // Create a new patient for this test to avoid dependency on existing data
+        var createPatientMutation = @"
+            mutation CreatePatient($input: CreatePatientCommandInput!) {
+                createPatient(command: $input) {
+                    id
+                    firstName
+                    lastName
+                }
+            }
+        ";
+
+        var createPatientVariables = new
+        {
+            input = new
+            {
+                firstName = "GetById",
+                lastName = "Test",
+                dateOfBirth = "1995-03-20"
+            }
+        };
+
+        var createPatientRequest = new GraphQLRequest
+        {
+            query = createPatientMutation,
+            variables = createPatientVariables
+        };
+
+        var createPatientJson = JsonSerializer.Serialize(createPatientRequest);
+        var createPatientContent = new StringContent(createPatientJson, Encoding.UTF8, "application/json");
+        
+        var createPatientRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/graphql")
+        {
+            Content = createPatientContent
+        };
+        createPatientRequestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var createPatientResponse = await _client.SendAsync(createPatientRequestMessage);
+        var createPatientResult = await createPatientResponse.Content.ReadFromJsonAsync<GraphQLResponse<CreatePatientResponse>>();
+        var patientId = createPatientResult?.Data?.CreatePatient?.Id ?? Guid.Empty;
 
         var query = @"
             query GetPatient($id: UUID!) {
@@ -189,7 +360,7 @@ public class GraphQLIntegrationTests : IDisposable
             }
         ";
 
-        var variables = new { id = existingPatientId };
+        var variables = new { id = patientId };
 
         var request = new GraphQLRequest
         {
@@ -216,7 +387,7 @@ public class GraphQLIntegrationTests : IDisposable
         Assert.NotNull(result);
         Assert.NotNull(result.Data);
         Assert.NotNull(result.Data.Patient);
-        Assert.Equal(existingPatientId, result.Data.Patient.Id.ToString());
+        Assert.Equal(patientId, result.Data.Patient.Id);
     }
 
     // Helper classes for GraphQL responses
@@ -274,6 +445,11 @@ public class GraphQLIntegrationTests : IDisposable
     private record GetPatientResponse
     {
         public PatientDetailDto? Patient { get; set; }
+    }
+
+    private record CreateDiagnosticResultResponse
+    {
+        public DiagnosticResultDto CreateDiagnosticResult { get; set; } = new();
     }
 
     private record PatientDto
