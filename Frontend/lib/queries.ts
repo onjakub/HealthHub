@@ -86,13 +86,13 @@ export const DELETE_PATIENT = gql`
 `
 
 export const ADD_DIAGNOSTIC_RESULT = gql`
-mutation($input: AddDiagnosticResultCommandInput!) { 
-  addDiagnosticResult(command: $input) { 
-    id
-    patientId
-    diagnosis
-    notes
-    timestampUtc 
-  } 
-}
+  mutation AddDiagnosticResult($input: AddDiagnosticResultCommandInput!) {
+    addDiagnosticResult(command: $input) {
+      id
+      patientId
+      diagnosis
+      notes
+      timestampUtc
+    }
+  }
 `

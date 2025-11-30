@@ -5,6 +5,7 @@ using HealthHub.Application.Commands;
 using HealthHub.Application.DTOs;
 using HealthHub.Application.Handlers;
 using HealthHub.Application.Queries;
+using HealthHub.Application.Services;
 using HealthHub.Domain.Interfaces;
 using HealthHub.Infrastructure.Data;
 using HealthHub.Infrastructure.Repositories;
@@ -30,6 +31,9 @@ builder.Services.AddDbContext<HealthHubDbContext>(options =>
 // Register repositories
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IDiagnosticResultRepository, DiagnosticResultRepository>();
+
+// Register services
+builder.Services.AddScoped<ILoggingService, LoggingService>();
 
 // Register command handlers
 builder.Services.AddScoped<ICommandHandler<CreatePatientCommand, PatientDto>, CreatePatientCommandHandler>();
@@ -178,38 +182,47 @@ app.UseAuthorization();
 // No MVC controllers are used; GraphQL and minimal APIs are mapped below
 
 // Simple token issuing endpoint for demo purposes
-app.MapPost("/auth/token", (HttpContext context) =>
+app.MapPost("/auth/token", async (HttpContext context) =>
     {
         // Parse JSON body
         try
         {
             using var reader = new StreamReader(context.Request.Body);
-            var body = reader.ReadToEndAsync().Result;
+            var body = await reader.ReadToEndAsync();
             var json = System.Text.Json.JsonDocument.Parse(body);
             var username = json.RootElement.GetProperty("username").GetString();
             var password = json.RootElement.GetProperty("password").GetString();
             
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                return Results.BadRequest(new { error = "Invalid credentials" });
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsync("{\"error\":\"Invalid credentials\"}");
+                return;
             }
 
-        var claims = new List<Claim> { new(ClaimTypes.Name, username) };
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(
-            issuer: jwtIssuer,
-            audience: jwtAudience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(12),
-            signingCredentials: creds);
+            // Simple demo authentication - accept any credentials for testing
+            var claims = new List<Claim> { new(ClaimTypes.Name, username) };
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                issuer: jwtIssuer,
+                audience: jwtAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(12),
+                signingCredentials: creds);
 
-        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-        return Results.Ok(new { token = jwt });
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            
+            // Manual JSON serialization to avoid .NET 10.0 PipeWriter issue
+            var responseJson = $"{{\"token\":\"{jwt}\"}}";
+            context.Response.StatusCode = 200;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(responseJson);
         }
         catch (Exception)
         {
-            return Results.BadRequest(new { error = "Invalid request format" });
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsync("{\"error\":\"Invalid request format\"}");
         }
     })
     .AllowAnonymous();

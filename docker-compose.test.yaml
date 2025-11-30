@@ -1,0 +1,36 @@
+services:
+  healthhub-test-db:
+    image: postgres:16
+    container_name: healthhub-test-db
+    environment:
+      POSTGRES_DB: healthhub_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d healthhub_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  healthhub-test-api:
+    image: healthhub-test
+    container_name: healthhub-test-api
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      DB_CONNECTION: "Host=healthhub-test-db;Database=healthhub_test;Username=test_user;Password=test_password"
+      JWT_KEY: "test-secret-key-for-integration-tests"
+      ASPNETCORE_ENVIRONMENT: Test
+    ports:
+      - "5001:5000"  # Different port for test API
+    depends_on:
+      healthhub-test-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

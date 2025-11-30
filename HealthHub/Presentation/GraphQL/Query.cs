@@ -1,6 +1,7 @@
 using HealthHub.Application.DTOs;
 using HealthHub.Application.Queries;
 using HealthHub.Application.Handlers;
+using HealthHub.Application.Services;
 using HotChocolate;
 using HotChocolate.Authorization;
 
@@ -14,44 +15,95 @@ public class Query
     [UseSorting]
     public async Task<IEnumerable<PatientDto>> GetPatientsAsync(
         [Service] IQueryHandler<GetPatientsQuery, IEnumerable<PatientDto>> handler,
+        [Service] ILoggingService loggingService,
         string? searchTerm = null,
         int? page = null,
         int? pageSize = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetPatientsQuery
-        {
-            SearchTerm = searchTerm,
-            Page = page,
-            PageSize = pageSize
-        };
+        using var activity = loggingService.StartActivity("GetPatients");
         
-        return await handler.Handle(query, cancellationToken);
+        try
+        {
+            var query = new GetPatientsQuery
+            {
+                SearchTerm = searchTerm,
+                Page = page,
+                PageSize = pageSize
+            };
+            
+            var result = await handler.Handle(query, cancellationToken);
+            loggingService.LogInformation("Retrieved {Count} patients with search term: {SearchTerm}",
+                result.Count(), searchTerm ?? "none");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            loggingService.LogError(ex, "Failed to retrieve patients");
+            throw;
+        }
     }
 
     [Authorize]
     public async Task<PatientDetailDto?> GetPatientAsync(
         Guid id,
         [Service] IQueryHandler<GetPatientByIdQuery, PatientDetailDto?> handler,
+        [Service] ILoggingService loggingService,
         CancellationToken cancellationToken)
     {
-        var query = new GetPatientByIdQuery { PatientId = id };
-        return await handler.Handle(query, cancellationToken);
+        using var activity = loggingService.StartActivity("GetPatientById");
+        
+        try
+        {
+            var query = new GetPatientByIdQuery { PatientId = id };
+            var result = await handler.Handle(query, cancellationToken);
+            
+            if (result != null)
+            {
+                loggingService.LogInformation("Retrieved patient {PatientId} with {DiagnosisCount} diagnoses",
+                    id, result.DiagnosticResults.Count);
+            }
+            else
+            {
+                loggingService.LogWarning("Patient not found: {PatientId}", id);
+            }
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            loggingService.LogError(ex, "Failed to retrieve patient: {PatientId}", id);
+            throw;
+        }
     }
 
     [Authorize]
     public async Task<IEnumerable<DiagnosticResultDto>> GetPatientDiagnosticResultsAsync(
         Guid patientId,
         [Service] IQueryHandler<GetPatientDiagnosticResultsQuery, IEnumerable<DiagnosticResultDto>> handler,
+        [Service] ILoggingService loggingService,
         int? limit = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetPatientDiagnosticResultsQuery
-        {
-            PatientId = patientId,
-            Limit = limit
-        };
+        using var activity = loggingService.StartActivity("GetPatientDiagnosticResults");
         
-        return await handler.Handle(query, cancellationToken);
+        try
+        {
+            var query = new GetPatientDiagnosticResultsQuery
+            {
+                PatientId = patientId,
+                Limit = limit
+            };
+            
+            var result = await handler.Handle(query, cancellationToken);
+            loggingService.LogInformation("Retrieved {Count} diagnostic results for patient {PatientId}",
+                result.Count(), patientId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            loggingService.LogError(ex, "Failed to retrieve diagnostic results for patient: {PatientId}", patientId);
+            throw;
+        }
     }
 }
