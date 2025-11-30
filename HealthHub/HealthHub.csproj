@@ -40,6 +40,29 @@
       <_ContentIncludedByDefault Remove="wwwroot\lib\queries.ts" />
       <_ContentIncludedByDefault Remove="wwwroot\patients\index.html" />
       <_ContentIncludedByDefault Remove="wwwroot\404\index.html" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\4nDfHouJ94cVhQErUKyyD\_buildManifest.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\4nDfHouJ94cVhQErUKyyD\_ssgManifest.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\255-cdfbae8573592318.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\487-18782e42d79be787.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\4bd1b696-3bd4cf4e5bec0624.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\app\layout-0f45e4cb3290c524.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\app\page-ea7eacd7da01f513.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\app\_not-found\page-7e8476ca65542929.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\framework-a6e0b7e30f98059a.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\main-4fd96fecc035939d.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\main-app-6928e8f3c713c2c0.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\pages\_app-7d307437aca18ad4.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\pages\_error-cb2a52f75f2162e2.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\polyfills-42372ed130431b0a.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\chunks\webpack-0fdcf482390c057c.js" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\css\92a067e19393afe6.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\19cfc7226ec3afaa-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\21350d82a1f187e9-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\8e9860b6e62d6359-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\ba9851c3c22cd980-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\c5fe6dc8356a8c31-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\df0a9ae256c0569c-s.woff2" />
+      <_ContentIncludedByDefault Remove="wwwroot\_next\static\media\e4af272ccee01ff0-s.p.woff2" />
     </ItemGroup>
 
     <ItemGroup>

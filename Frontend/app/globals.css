@@ -2,31 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Rollback globals to rely on Tailwind utilities set in layout/body.
-   We intentionally remove CSS variables and body overrides to avoid
-   unexpected cascade changes across the app. */
+@layer base {
+  :root {
+    /* Modern healthcare color palette */
+    --color-primary: 0 122 255; /* #007AFF - modern blue */
+    --color-primary-dark: 0 95 204; /* #005FCC */
+    --color-secondary: 52 199 89; /* #34C759 - healthy green */
+    --color-accent: 88 86 214; /* #5856D6 - purple accent */
+    --color-error: 255 59 48; /* #FF3B30 */
+    --color-warning: 255 149 0; /* #FF9500 */
+    --color-success: 52 199 89; /* #34C759 */
 
-/* Custom styles for HealthHub */
-.patient-card {
-  @apply bg-white rounded-lg shadow-md p-6 mb-4 border border-gray-200;
+    /* Neutral tones */
+    --color-background: 248 249 250; /* #F8F9FA */
+    --color-surface: 255 255 255; /* #FFFFFF */
+    --color-border: 229 231 235; /* #E5E7EB */
+    --color-text-primary: 17 24 39; /* #111827 */
+    --color-text-secondary: 107 114 128; /* #6B7280 */
+  }
 }
 
-.patient-form {
-  @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
-}
+@layer components {
+  /* Patient cards */
+  .patient-card {
+    @apply bg-white rounded-xl shadow-sm p-6 mb-4 border border-gray-100
+           hover:shadow-md transition-shadow duration-200;
+  }
 
-.form-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
+  /* Forms */
+  .patient-form {
+    @apply bg-white rounded-xl shadow-sm p-8 border border-gray-100;
+  }
 
-.form-label {
-  @apply block text-sm font-medium text-gray-700 mb-1;
-}
+  /* Input fields with modern design */
+  .form-input {
+    @apply w-full px-4 py-2.5 text-base border border-gray-200 rounded-lg
+           bg-white text-gray-900
+           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+           transition-colors duration-150
+           placeholder:text-gray-400;
+  }
 
-.btn-primary {
-  @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-}
+  .form-input:disabled {
+    @apply bg-gray-50 text-gray-500 cursor-not-allowed;
+  }
 
-.btn-secondary {
-  @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  /* Labels with better readability */
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-2;
+  }
+
+  /* Primary buttons */
+  .btn-primary {
+    @apply bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium
+           hover:bg-blue-700 active:bg-blue-800
+           focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2
+           transition-all duration-150
+           disabled:bg-gray-300 disabled:cursor-not-allowed disabled:text-gray-500;
+  }
+
+  /* Secondary buttons */
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-700 px-5 py-2.5 rounded-lg font-medium
+           hover:bg-gray-200 active:bg-gray-300
+           focus:outline-none focus:ring-2 focus:ring-gray-400/50 focus:ring-offset-2
+           transition-all duration-150;
+  }
+
+  /* Success button */
+  .btn-success {
+    @apply bg-green-600 text-white px-5 py-2.5 rounded-lg font-medium
+           hover:bg-green-700 active:bg-green-800
+           focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:ring-offset-2
+           transition-all duration-150;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply bg-red-600 text-white px-5 py-2.5 rounded-lg font-medium
+           hover:bg-red-700 active:bg-red-800
+           focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2
+           transition-all duration-150;
+  }
+
+  /* Alert components */
+  .alert {
+    @apply px-4 py-3.5 rounded-lg border font-medium;
+  }
+
+  .alert-error {
+    @apply alert bg-red-50 border-red-200 text-red-800;
+  }
+
+  .alert-success {
+    @apply alert bg-green-50 border-green-200 text-green-800;
+  }
+
+  .alert-warning {
+    @apply alert bg-amber-50 border-amber-200 text-amber-800;
+  }
+
+  .alert-info {
+    @apply alert bg-blue-50 border-blue-200 text-blue-800;
+  }
+
+  /* Status badges */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold;
+  }
+
+  .badge-active {
+    @apply badge bg-green-100 text-green-800;
+  }
+
+  .badge-inactive {
+    @apply badge bg-gray-100 text-gray-800;
+  }
+
+  .badge-critical {
+    @apply badge bg-red-100 text-red-800;
+  }
+
+  /* Section containers */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  /* Page header */
+  .page-header {
+    @apply mb-8 pb-6 border-b border-gray-200;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold text-gray-900 tracking-tight;
+  }
+
+  .page-subtitle {
+    @apply mt-2 text-base text-gray-600;
+  }
 }
