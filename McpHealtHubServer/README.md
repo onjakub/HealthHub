@@ -79,7 +79,7 @@ To test this MCP server from source code (locally) without using a built MCP ser
 The MCP server requires the following environment variables:
 
 - `HEALTHHUB_API_URL` - URL of the HealthHub GraphQL API (default: http://localhost:5000)
-- `HEALTHHUB_JWT_TOKEN` - JWT token for API authentication (required for production)
+- `HEALTHHUB_JWT_TOKEN` - JWT token for API authentication (required)
 
 ## Testing the MCP Server
 
@@ -93,7 +93,7 @@ You can also test the random number tool: `Give me 3 random numbers`. It should 
 ## Publishing to NuGet.org
 
 1. Run `dotnet pack -c Release` to create the NuGet package
-2. Publish to NuGet.org with `dotnet nuget push bin/Release/*.nupkg --api-key <your-api-key> --source https://api.nuget.org/v3/index.json`
+2. Publish to NuGet.org with `dotnet nuget push bin/Release/McpHealtHubServer.1.0.0.nupkg --api-key <your-api-key> --source https://api.nuget.org/v3/index.json`
 
 ## Using the MCP Server from NuGet.org
 
@@ -111,9 +111,9 @@ For both VS Code and Visual Studio, the configuration file uses the following se
       "type": "stdio",
       "command": "dnx",
       "args": [
-        "<your package ID here>",
+        "McpHealtHubServer",
         "--version",
-        "<your package version here>",
+        "1.0.0",
         "--yes"
       ]
     }
@@ -128,6 +128,20 @@ For both VS Code and Visual Studio, the configuration file uses the following se
 - [Official Documentation](https://modelcontextprotocol.io/)
 - [Protocol Specification](https://spec.modelcontextprotocol.io/)
 - [GitHub Organization](https://github.com/modelcontextprotocol)
+
+## Security Notes
+
+- The MCP server requires a valid JWT token for authentication
+- Never commit JWT tokens to version control
+- Use secure environment variable management for production deployments
+
+## Error Handling
+
+The server provides detailed error messages for:
+- Invalid patient IDs
+- GraphQL query errors
+- HTTP request failures
+- Input validation errors
 
 Refer to the VS Code or Visual Studio documentation for more information on configuring and using MCP servers:
 
