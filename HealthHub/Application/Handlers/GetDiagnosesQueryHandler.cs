@@ -28,7 +28,8 @@ public class GetDiagnosesQueryHandler : IQueryHandler<GetDiagnosesQuery, IEnumer
             Diagnosis = r.Diagnosis.Value,
             Notes = r.Notes,
             TimestampUtc = r.TimestampUtc,
-            CreatedAt = r.CreatedAt
+            CreatedAt = r.CreatedAt,
+            IsActive = r.IsActive
         });
     }
 }

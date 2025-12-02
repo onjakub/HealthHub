@@ -70,6 +70,10 @@ public class HealthHubDbContext(DbContextOptions<HealthHubDbContext> options) : 
 
             entity.Property(d => d.CreatedAt)
                 .IsRequired();
+
+            entity.Property(d => d.IsActive)
+                .IsRequired()
+                .HasDefaultValue(true);
         });
     }
 }

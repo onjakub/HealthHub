@@ -110,6 +110,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HealthHubDbContext>();
+    await db.Database.EnsureDeletedAsync();
     await db.Database.EnsureCreatedAsync();
 }
 
@@ -144,9 +145,7 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseCors(policy => policy
     .WithOrigins(
         "http://localhost:3000",  // React dev server
-        "http://localhost:3001",  // Alternative React dev port
-        "https://localhost:3000", // HTTPS dev server
-        "https://localhost:3001"  // Alternative HTTPS dev port
+        "https://localhost:3000" // HTTPS dev server
     )
     .AllowAnyMethod()
     .AllowAnyHeader()

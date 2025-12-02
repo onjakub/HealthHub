@@ -8,6 +8,7 @@ public class DiagnosticResultDto
     public string? Notes { get; set; }
     public DateTime TimestampUtc { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsActive { get; set; }
 }
 
 public class CreateDiagnosticResultDto

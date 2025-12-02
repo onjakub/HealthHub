@@ -10,6 +10,7 @@ public class DiagnosticResult
     public string? Notes { get; private set; }
     public DateTime TimestampUtc { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     private DiagnosticResult()
     {

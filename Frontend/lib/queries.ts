@@ -119,6 +119,7 @@ export const GET_DIAGNOSES = gql`
         notes
         timestampUtc
         createdAt
+        isActive
       }
       pageInfo {
         hasNextPage

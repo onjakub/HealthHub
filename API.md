@@ -152,6 +152,7 @@ query GetDiagnoses(
     notes
     timestampUtc
     createdAt
+    isActive
   }
 }
 
@@ -163,11 +164,36 @@ fragment DiagnosisFields on DiagnosticResult {
   notes
   timestampUtc
   createdAt
+  isActive
 }
 
 query GetDiagnosesWithFragment($type: String) {
   diagnoses(type: $type) {
     ...DiagnosisFields
+  }
+}
+
+# Example with specific filters
+query GetDiagnosesWithFilters {
+  diagnoses(
+    type: "ka"
+    createdAfter: "2023-01-01T00:00:00Z"
+    skip: 0
+    take: 10
+  ) {
+    nodes {
+      id
+      patientId
+      diagnosis
+      notes
+      timestampUtc
+      createdAt
+      isActive
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
   }
 }
 ```
@@ -193,7 +219,8 @@ query GetDiagnosesWithFragment($type: String) {
         "diagnosis": "Hypertension (Chronic)",
         "notes": "Patient requires regular monitoring",
         "timestampUtc": "2023-05-15T10:30:00Z",
-        "createdAt": "2023-05-15T10:30:00Z"
+        "createdAt": "2023-05-15T10:30:00Z",
+        "isActive": true
       }
     ]
   }
@@ -360,6 +387,7 @@ type DiagnosticResult {
   notes: String
   timestampUtc: DateTime!
   createdAt: DateTime!
+  isActive: Boolean!
 }
 ```
 
