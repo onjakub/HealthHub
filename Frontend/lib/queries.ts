@@ -115,6 +115,12 @@ export const GET_DIAGNOSES = gql`
       nodes {
         id
         patientId
+        patient {
+          id
+          firstName
+          lastName
+          fullName
+        }
         diagnosis
         notes
         timestampUtc

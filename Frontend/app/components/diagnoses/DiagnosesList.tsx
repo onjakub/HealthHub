@@ -13,9 +13,9 @@ export default function DiagnosesList() {
 
   const { loading, error, data, refetch } = useQuery(GET_DIAGNOSES, {
     variables: {
-      type: filters.type,
-      createdAfter: filters.createdAfter,
-      createdBefore: filters.createdBefore,
+      type: filters.type || null,
+      createdAfter: filters.createdAfter || null,
+      createdBefore: filters.createdBefore || null,
       skip: 0,
       take: 10
     }
@@ -27,9 +27,9 @@ export default function DiagnosesList() {
 
   const applyFilters = () => {
     refetch({
-      type: filters.type,
-      createdAfter: filters.createdAfter,
-      createdBefore: filters.createdBefore,
+      type: filters.type || null,
+      createdAfter: filters.createdAfter || null,
+      createdBefore: filters.createdBefore || null,
       skip: 0,
       take: 10
     })
@@ -66,8 +66,8 @@ export default function DiagnosesList() {
             </label>
             <input
               type="date"
-              value={filters.createdAfter.split('T')[0]}
-              onChange={(e) => handleFilterChange('createdAfter', e.target.value + 'T00:00:00Z')}
+              value={filters.createdAfter ? filters.createdAfter.split('T')[0] : ''}
+              onChange={(e) => handleFilterChange('createdAfter', e.target.value ? e.target.value + 'T00:00:00Z' : '')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -77,8 +77,8 @@ export default function DiagnosesList() {
             </label>
             <input
               type="date"
-              value={filters.createdBefore.split('T')[0]}
-              onChange={(e) => handleFilterChange('createdBefore', e.target.value + 'T23:59:59Z')}
+              value={filters.createdBefore ? filters.createdBefore.split('T')[0] : ''}
+              onChange={(e) => handleFilterChange('createdBefore', e.target.value ? e.target.value + 'T23:59:59Z' : '')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -116,7 +116,7 @@ export default function DiagnosesList() {
             {diagnoses.map((diagnosis: any) => (
               <tr key={diagnosis.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {diagnosis.patientId}
+                  {diagnosis.patient?.fullName || 'Unknown'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {diagnosis.diagnosis}
