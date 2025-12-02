@@ -1,3 +1,4 @@
+using HealthHub.Application.DTOs;
 using HealthHub.Domain.Entities;
 using HealthHub.Domain.Interfaces;
 using HealthHub.Infrastructure.Data;
@@ -12,6 +13,49 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
     public DiagnosticResultRepository(HealthHubDbContext context)
     {
         _context = context;
+    }
+
+    public async Task<IEnumerable<DiagnosticResult>> GetDiagnosesAsync(
+        DiagnosisFilter filter,
+        int? skip = null,
+        int? take = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.DiagnosticResults.AsQueryable();
+
+        // Apply filters
+        if (!string.IsNullOrWhiteSpace(filter.Type))
+        {
+            query = query.Where(d => d.Diagnosis.Value.Contains(filter.Type));
+        }
+
+        if (filter.CreatedAfter.HasValue)
+        {
+            query = query.Where(d => d.CreatedAt >= filter.CreatedAfter.Value);
+        }
+
+        if (filter.CreatedBefore.HasValue)
+        {
+            query = query.Where(d => d.CreatedAt <= filter.CreatedBefore.Value);
+        }
+
+        // Order by creation date (newest first)
+        query = query.OrderByDescending(d => d.CreatedAt);
+
+        // Apply pagination
+        if (skip.HasValue)
+        {
+            query = query.Skip(skip.Value);
+        }
+
+        if (take.HasValue)
+        {
+            query = query.Take(take.Value);
+        }
+
+        return await query
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<DiagnosticResult?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

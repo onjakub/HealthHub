@@ -6,9 +6,10 @@ import client from '../lib/graphql-client'
 import PatientList from '../components/patients/PatientList'
 import PatientForm from '../components/patients/PatientForm'
 import Login from '../components/auth/Login'
+import DiagnosesList from './components/diagnoses/DiagnosesList'
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<'list' | 'form'>('list')
+  const [currentView, setCurrentView] = useState<'diagnoses' | 'list' | 'form'>('diagnoses')
   const [selectedPatient, setSelectedPatient] = useState<any>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -47,6 +48,16 @@ export default function Home() {
             </div>
             <nav className="mt-2">
               <button
+                onClick={() => setCurrentView('diagnoses')}
+                className={`mr-4 px-3 py-2 rounded-md text-sm font-medium ${
+                  currentView === 'diagnoses'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Diagnoses List
+              </button>
+              <button
                 onClick={() => setCurrentView('list')}
                 className={`mr-4 px-3 py-2 rounded-md text-sm font-medium ${
                   currentView === 'list'
@@ -75,6 +86,7 @@ export default function Home() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {currentView === 'diagnoses' && <DiagnosesList />}
           {currentView === 'list' && (
             <PatientList
               onEditPatient={(patient) => {

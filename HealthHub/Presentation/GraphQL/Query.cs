@@ -106,4 +106,47 @@ public class Query
             throw;
         }
     }
+    [Authorize]
+    [UsePaging]
+    [UseFiltering]
+    [UseSorting]
+    public async Task<IEnumerable<DiagnosticResultDto>> GetDiagnosesAsync(
+        [Service] IQueryHandler<GetDiagnosesQuery, IEnumerable<DiagnosticResultDto>> handler,
+        [Service] ILoggingService loggingService,
+        string? type = null,
+        DateTime? createdAfter = null,
+        DateTime? createdBefore = null,
+        int? skip = null,
+        int? take = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var activity = loggingService.StartActivity("GetDiagnoses");
+        
+        try
+        {
+            var filter = new DiagnosisFilter
+            {
+                Type = type,
+                CreatedAfter = createdAfter,
+                CreatedBefore = createdBefore
+            };
+
+            var query = new GetDiagnosesQuery
+            {
+                Filter = filter,
+                Skip = skip,
+                Take = take
+            };
+            
+            var result = await handler.Handle(query, cancellationToken);
+            loggingService.LogInformation("Retrieved {Count} diagnoses with filter: {Filter}",
+                result.Count(), filter);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            loggingService.LogError(ex, "Failed to retrieve diagnoses");
+            throw;
+        }
+    }
 }

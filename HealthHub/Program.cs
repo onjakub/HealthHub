@@ -46,6 +46,7 @@ builder.Services.AddScoped<ICommandHandler<DeletePatientCommand, bool>, DeletePa
 builder.Services.AddScoped<IQueryHandler<GetPatientsQuery, IEnumerable<PatientDto>>, GetPatientsQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetPatientByIdQuery, PatientDetailDto?>, GetPatientByIdQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetPatientDiagnosticResultsQuery, IEnumerable<DiagnosticResultDto>>, GetPatientDiagnosticResultsQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetDiagnosesQuery, IEnumerable<DiagnosticResultDto>>, GetDiagnosesQueryHandler>();
 
 // JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");

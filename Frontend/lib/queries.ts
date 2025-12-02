@@ -96,3 +96,36 @@ export const ADD_DIAGNOSTIC_RESULT = gql`
     }
   }
 `
+
+export const GET_DIAGNOSES = gql`
+  query GetDiagnoses(
+    $type: String
+    $createdAfter: DateTime
+    $createdBefore: DateTime
+    $skip: Int
+    $take: Int
+  ) {
+    diagnoses(
+      type: $type
+      createdAfter: $createdAfter
+      createdBefore: $createdBefore
+      skip: $skip
+      take: $take
+    ) {
+      nodes {
+        id
+        patientId
+        diagnosis
+        notes
+        timestampUtc
+        createdAt
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`

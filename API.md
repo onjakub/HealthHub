@@ -129,6 +129,77 @@ query GetPatientDiagnosticResults($patientId: UUID!, $limit: Int) {
 }
 ```
 
+#### GetDiagnoses - Get all diagnoses with filtering and pagination
+
+```graphql
+query GetDiagnoses(
+  $type: String
+  $createdAfter: DateTime
+  $createdBefore: DateTime
+  $skip: Int
+  $take: Int
+) {
+  diagnoses(
+    type: $type
+    createdAfter: $createdAfter
+    createdBefore: $createdBefore
+    skip: $skip
+    take: $take
+  ) {
+    id
+    patientId
+    diagnosis
+    notes
+    timestampUtc
+    createdAt
+  }
+}
+
+# Example with fragments
+fragment DiagnosisFields on DiagnosticResult {
+  id
+  patientId
+  diagnosis
+  notes
+  timestampUtc
+  createdAt
+}
+
+query GetDiagnosesWithFragment($type: String) {
+  diagnoses(type: $type) {
+    ...DiagnosisFields
+  }
+}
+```
+
+**Variables:**
+```json
+{
+  "type": "Chronic",
+  "createdAfter": "2023-01-01T00:00:00Z",
+  "skip": 0,
+  "take": 10
+}
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "diagnoses": [
+      {
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "patientId": "b2c3d4e5-f6g7-8901-abcd-ef1234567890",
+        "diagnosis": "Hypertension (Chronic)",
+        "notes": "Patient requires regular monitoring",
+        "timestampUtc": "2023-05-15T10:30:00Z",
+        "createdAt": "2023-05-15T10:30:00Z"
+      }
+    ]
+  }
+}
+```
+
 ### Mutation Operations
 
 #### CreatePatient - Create a new patient

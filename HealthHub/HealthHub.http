@@ -25,7 +25,7 @@ Content-Type: {{ContentType}}
 
 ### 3. Nastavení autentizačního tokenu
 // VLOŽTE ZDE TOKEN Z REQUESTU #2:
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImV4cCI6MTc2NDQ2Nzk1MywiaXNzIjoiSGVhbHRoSHViIiwiYXVkIjoiSGVhbHRoSHViQXVkaWVuY2UifQ.0SGlLp9-QF-g2dXYMRuenqbTMQFJNDSMqVpGEzlNRl4
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsImV4cCI6MTc2NDczODc4OCwiaXNzIjoiSGVhbHRoSHViIiwiYXVkIjoiSGVhbHRoSHViQXVkaWVuY2UifQ.AM2xqd9Cg6PRkaKX8Lk8tE4_WzbRlaDRmakgU3T-p5Y
 
 ### 4. GraphQL - Získání všech pacientů
 POST {{HealthHub_HostAddress}}/graphql
@@ -162,3 +162,18 @@ Authorization: Bearer invalid-token
 ### 13. OpenAPI Dokumentace (pokud je povolena)
 GET {{HealthHub_HostAddress}}/openapi/v1.json
 Accept: {{ContentType}}
+
+### 14. GraphQL - Získání diagnóz s filtrem a stránkováním
+POST {{HealthHub_HostAddress}}/graphql
+Content-Type: {{ContentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "query": "query GetDiagnoses($type: String, $createdAfter: DateTime, $createdBefore: DateTime, $skip: Int, $take: Int) { diagnoses(type: $type, createdAfter: $createdAfter, createdBefore: $createdBefore, skip: $skip, take: $take) { nodes { id patientId diagnosis notes timestampUtc createdAt } pageInfo { hasNextPage hasPreviousPage startCursor endCursor } } }",
+  "variables": {
+    "type": "ka",
+    "createdAfter": "2023-01-01T00:00:00Z",
+    "skip": 0,
+    "take": 10
+  }
+}
