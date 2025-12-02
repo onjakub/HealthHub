@@ -111,4 +111,29 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<int> GetDiagnosesCountAsync(
+        DiagnosisFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.DiagnosticResults.AsQueryable();
+
+        // Apply filters
+        if (!string.IsNullOrWhiteSpace(filter.Type))
+        {
+            query = query.Where(d => d.Diagnosis.Value.Contains(filter.Type));
+        }
+
+        if (filter.CreatedAfter.HasValue)
+        {
+            query = query.Where(d => d.CreatedAt >= filter.CreatedAfter.Value);
+        }
+
+        if (filter.CreatedBefore.HasValue)
+        {
+            query = query.Where(d => d.CreatedAt <= filter.CreatedBefore.Value);
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
 }

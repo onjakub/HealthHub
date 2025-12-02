@@ -2,7 +2,9 @@ import { useQuery } from '@apollo/client'
 import { GET_DIAGNOSES } from '@/lib/queries'
 import { format } from 'date-fns'
 import { cs } from 'date-fns/locale'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Pagination from '@/components/ui/Pagination'
+import { PaginationState } from '@/lib/types'
 
 export default function DiagnosesList() {
   const [filters, setFilters] = useState({
@@ -11,38 +13,80 @@ export default function DiagnosesList() {
     createdBefore: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T23:59:59Z'
   })
 
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+  })
+
   const { loading, error, data, refetch } = useQuery(GET_DIAGNOSES, {
     variables: {
       type: filters.type || null,
       createdAfter: filters.createdAfter || null,
       createdBefore: filters.createdBefore || null,
-      skip: 0,
-      take: 10
+      skip: (pagination.currentPage - 1) * pagination.pageSize,
+      take: pagination.pageSize
     }
   })
+
+  const diagnoses = data?.diagnoses?.nodes || []
+  const totalCount = data?.diagnoses?.totalCount || 0
+  const pageInfo = data?.diagnoses?.pageInfo || {}
+
+  // Update pagination state when data changes
+  useEffect(() => {
+    if (totalCount !== pagination.totalCount) {
+      const totalPages = Math.ceil(totalCount / pagination.pageSize)
+      setPagination(prev => ({
+        ...prev,
+        totalCount,
+        totalPages
+      }))
+    }
+  }, [totalCount, pagination.pageSize, pagination.totalCount])
 
   const handleFilterChange = (field: string, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }))
   }
 
   const applyFilters = () => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
     refetch({
       type: filters.type || null,
       createdAfter: filters.createdAfter || null,
       createdBefore: filters.createdBefore || null,
       skip: 0,
-      take: 10
+      take: pagination.pageSize
     })
+  }
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }))
+  }
+
+  const handlePageSizeChange = (pageSize: number) => {
+    const newPage = Math.floor(((pagination.currentPage - 1) * pagination.pageSize) / pageSize) + 1
+    setPagination(prev => ({
+      ...prev,
+      pageSize,
+      currentPage: newPage
+    }))
   }
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
 
-  const diagnoses = data?.diagnoses?.nodes || []
-
   return (
     <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-6">Diagnoses List</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Diagnoses List</h2>
+        {totalCount > 0 && (
+          <p className="text-sm text-gray-600">
+            Showing {diagnoses.length} of {totalCount} diagnoses
+          </p>
+        )}
+      </div>
       
       {/* Filter Section */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -142,9 +186,24 @@ export default function DiagnosesList() {
         </table>
       </div>
 
-      {diagnoses.length === 0 && (
+      {diagnoses.length === 0 && !loading && (
         <div className="text-center py-8 text-gray-500">
           No diagnoses found
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalCount > 0 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalCount={pagination.totalCount}
+            pageSize={pagination.pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
         </div>
       )}
     </div>

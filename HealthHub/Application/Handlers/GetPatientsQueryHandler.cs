@@ -4,7 +4,7 @@ using HealthHub.Domain.Interfaces;
 
 namespace HealthHub.Application.Handlers;
 
-public class GetPatientsQueryHandler : IQueryHandler<GetPatientsQuery, IEnumerable<PatientDto>>
+public class GetPatientsQueryHandler : IQueryHandler<GetPatientsQuery, PaginationResponseDto<PatientDto>>
 {
     private readonly IPatientRepository _patientRepository;
 
@@ -13,28 +13,31 @@ public class GetPatientsQueryHandler : IQueryHandler<GetPatientsQuery, IEnumerab
         _patientRepository = patientRepository;
     }
 
-    public async Task<IEnumerable<PatientDto>> Handle(GetPatientsQuery query, CancellationToken cancellationToken)
+    public async Task<PaginationResponseDto<PatientDto>> Handle(GetPatientsQuery query, CancellationToken cancellationToken)
     {
-        var patients = await _patientRepository.GetAllAsync(cancellationToken);
+        var allPatients = await _patientRepository.GetAllAsync(cancellationToken);
 
         // Apply search filter if provided
+        var filteredPatients = allPatients.AsEnumerable();
         if (!string.IsNullOrWhiteSpace(query.SearchTerm))
         {
-            patients = patients.Where(p => 
+            filteredPatients = filteredPatients.Where(p =>
                 p.Name.FirstName.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                 p.Name.LastName.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
                 p.GetLastDiagnosis()?.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) == true
             );
         }
 
+        var totalCount = filteredPatients.Count();
+
         // Apply pagination if provided
         if (query.Page.HasValue && query.PageSize.HasValue)
         {
             var skip = (query.Page.Value - 1) * query.PageSize.Value;
-            patients = patients.Skip(skip).Take(query.PageSize.Value);
+            filteredPatients = filteredPatients.Skip(skip).Take(query.PageSize.Value);
         }
 
-        return patients.Select(patient => new PatientDto
+        var patientDtos = filteredPatients.Select(patient => new PatientDto
         {
             Id = patient.Id,
             FirstName = patient.Name.FirstName,
@@ -45,7 +48,23 @@ public class GetPatientsQueryHandler : IQueryHandler<GetPatientsQuery, IEnumerab
             LastDiagnosis = patient.GetLastDiagnosis(),
             CreatedAt = patient.CreatedAt,
             UpdatedAt = patient.UpdatedAt
-        });
+        }).ToList();
+
+        var totalPages = query.PageSize.HasValue ? (int)Math.Ceiling((double)totalCount / query.PageSize.Value) : 1;
+        var currentPage = query.Page ?? 1;
+
+        return new PaginationResponseDto<PatientDto>
+        {
+            Nodes = patientDtos,
+            PageInfo = new PageInfoDto
+            {
+                HasNextPage = currentPage < totalPages,
+                HasPreviousPage = currentPage > 1,
+                StartCursor = currentPage.ToString(),
+                EndCursor = currentPage.ToString()
+            },
+            TotalCount = totalCount
+        };
     }
 }
 

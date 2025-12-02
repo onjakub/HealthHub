@@ -43,7 +43,10 @@ export interface GetPatientsResponse {
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
+      startCursor?: string;
+      endCursor?: string;
     };
+    totalCount: number;
   };
 }
 
@@ -53,6 +56,19 @@ export interface GetPatientResponse {
 
 export interface GetPatientDiagnosticResultsResponse {
   patientDiagnosticResults: DiagnosticResult[];
+}
+
+export interface GetDiagnosesResponse {
+  diagnoses: {
+    nodes: DiagnosticResult[];
+    pageInfo: {
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+      startCursor?: string;
+      endCursor?: string;
+    };
+    totalCount: number;
+  };
 }
 
 // GraphQL Mutation Input Types
@@ -141,6 +157,20 @@ export interface PaginationParams {
   page?: number;
   pageSize?: number;
   searchTerm?: string;
+}
+
+export interface PaginationState {
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface PaginationInfo {
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor?: string;
+  endCursor?: string;
 }
 
 export interface SortParams {

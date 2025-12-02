@@ -10,11 +10,8 @@ namespace HealthHub.Presentation.GraphQL;
 public class Query
 {
     [Authorize]
-    [UsePaging]
-    [UseFiltering]
-    [UseSorting]
-    public async Task<IEnumerable<PatientDto>> GetPatientsAsync(
-        [Service] IQueryHandler<GetPatientsQuery, IEnumerable<PatientDto>> handler,
+    public async Task<PaginationResponseDto<PatientDto>> GetPatientsAsync(
+        [Service] IQueryHandler<GetPatientsQuery, PaginationResponseDto<PatientDto>> handler,
         [Service] ILoggingService loggingService,
         string? searchTerm = null,
         int? page = null,
@@ -34,7 +31,7 @@ public class Query
             
             var result = await handler.Handle(query, cancellationToken);
             loggingService.LogInformation("Retrieved {Count} patients with search term: {SearchTerm}",
-                result.Count(), searchTerm ?? "none");
+                result.Nodes.Count(), searchTerm ?? "none");
             return result;
         }
         catch (Exception ex)
@@ -107,11 +104,8 @@ public class Query
         }
     }
     [Authorize]
-    [UsePaging]
-    [UseFiltering]
-    [UseSorting]
-    public async Task<IEnumerable<DiagnosticResultDto>> GetDiagnosesAsync(
-        [Service] IQueryHandler<GetDiagnosesQuery, IEnumerable<DiagnosticResultDto>> handler,
+    public async Task<PaginationResponseDto<DiagnosticResultDto>> GetDiagnosesAsync(
+        [Service] IQueryHandler<GetDiagnosesQuery, PaginationResponseDto<DiagnosticResultDto>> handler,
         [Service] ILoggingService loggingService,
         string? type = null,
         DateTime? createdAfter = null,
@@ -140,7 +134,7 @@ public class Query
             
             var result = await handler.Handle(query, cancellationToken);
             loggingService.LogInformation("Retrieved {Count} diagnoses with filter: {Filter}",
-                result.Count(), filter);
+                result.Nodes.Count(), filter);
             return result;
         }
         catch (Exception ex)

@@ -25,4 +25,14 @@ public interface IDiagnosticResultRepository
         int? skip = null,
         int? take = null,
         CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Gets the total count of diagnoses matching the filter criteria.
+    /// </summary>
+    /// <param name="filter">Filter criteria for diagnoses.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Total count of matching diagnoses.</returns>
+    Task<int> GetDiagnosesCountAsync(
+        DiagnosisFilter filter,
+        CancellationToken cancellationToken = default);
 }

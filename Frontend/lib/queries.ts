@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client'
 
 export const GET_PATIENTS = gql`
-  query GetPatients {
-    patients {
+  query GetPatients($searchTerm: String, $page: Int, $pageSize: Int) {
+    patients(searchTerm: $searchTerm, page: $page, pageSize: $pageSize) {
       nodes {
         id
         firstName
@@ -16,7 +16,10 @@ export const GET_PATIENTS = gql`
       pageInfo {
         hasNextPage
         hasPreviousPage
+        startCursor
+        endCursor
       }
+      totalCount
     }
   }
 `
@@ -133,6 +136,7 @@ export const GET_DIAGNOSES = gql`
         startCursor
         endCursor
       }
+      totalCount
     }
   }
 `

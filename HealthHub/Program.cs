@@ -43,10 +43,10 @@ builder.Services.AddScoped<ICommandHandler<UpdateDiagnosticResultCommand, Diagno
 builder.Services.AddScoped<ICommandHandler<DeletePatientCommand, bool>, DeletePatientCommandHandler>();
 
 // Register query handlers
-builder.Services.AddScoped<IQueryHandler<GetPatientsQuery, IEnumerable<PatientDto>>, GetPatientsQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetPatientsQuery, PaginationResponseDto<PatientDto>>, GetPatientsQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetPatientByIdQuery, PatientDetailDto?>, GetPatientByIdQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetPatientDiagnosticResultsQuery, IEnumerable<DiagnosticResultDto>>, GetPatientDiagnosticResultsQueryHandler>();
-builder.Services.AddScoped<IQueryHandler<GetDiagnosesQuery, IEnumerable<DiagnosticResultDto>>, GetDiagnosesQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetDiagnosesQuery, PaginationResponseDto<DiagnosticResultDto>>, GetDiagnosesQueryHandler>();
 
 // JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");

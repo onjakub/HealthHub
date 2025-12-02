@@ -2,7 +2,7 @@ using HealthHub.Application.DTOs;
 
 namespace HealthHub.Application.Queries;
 
-public record GetPatientsQuery : IQuery<IEnumerable<PatientDto>>
+public record GetPatientsQuery : IQuery<PaginationResponseDto<PatientDto>>
 {
     public string? SearchTerm { get; init; }
     public int? Page { get; init; }

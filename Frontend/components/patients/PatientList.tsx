@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { GET_PATIENTS } from '../../lib/queries'
+import Pagination from '../ui/Pagination'
+import { PaginationState } from '../../lib/types'
 
 interface Patient {
   id: string
@@ -17,8 +19,21 @@ interface PatientListProps {
 }
 
 export default function PatientList({ onEditPatient }: PatientListProps) {
-  const { loading, error, data } = useQuery(GET_PATIENTS)
   const [searchTerm, setSearchTerm] = useState('')
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+  })
+
+  const { loading, error, data, refetch } = useQuery(GET_PATIENTS, {
+    variables: {
+      searchTerm: searchTerm || null,
+      page: pagination.currentPage,
+      pageSize: pagination.pageSize
+    }
+  })
 
   if (loading) {
     return (
@@ -47,10 +62,36 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
   }
 
   const patients = data?.patients?.nodes || []
+  const totalCount = data?.patients?.totalCount || 0
+  const pageInfo = data?.patients?.pageInfo || {}
 
-  const filteredPatients = patients.filter((patient: Patient) =>
-    `${patient.firstName} ${patient.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Update pagination state when data changes
+  if (totalCount !== pagination.totalCount) {
+    const totalPages = Math.ceil(totalCount / pagination.pageSize)
+    setPagination(prev => ({
+      ...prev,
+      totalCount,
+      totalPages
+    }))
+  }
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, currentPage: page }))
+  }
+
+  const handlePageSizeChange = (pageSize: number) => {
+    const newPage = Math.floor(((pagination.currentPage - 1) * pagination.pageSize) / pageSize) + 1
+    setPagination(prev => ({
+      ...prev,
+      pageSize,
+      currentPage: newPage
+    }))
+  }
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+  }
 
   return (
     <div>
@@ -64,12 +105,12 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
             type="text"
             placeholder="Search patients by name..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="form-input pl-10"
           />
           {searchTerm && (
             <button
-              onClick={() => setSearchTerm('')}
+              onClick={() => handleSearch('')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,16 +119,16 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
             </button>
           )}
         </div>
-        {searchTerm && (
+        {totalCount > 0 && (
           <p className="text-sm text-gray-600 mt-2">
-            Found {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''}
+            Showing {patients.length} of {totalCount} patient{totalCount !== 1 ? 's' : ''}
           </p>
         )}
       </div>
 
       {/* Patient list */}
       <div className="grid gap-4">
-        {filteredPatients.map((patient: Patient) => (
+        {patients.map((patient: Patient) => (
           <div key={patient.id} className="patient-card group">
             <div className="flex justify-between items-start gap-4">
               <div className="flex-1 min-w-0">
@@ -123,7 +164,7 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
           </div>
         ))}
 
-        {filteredPatients.length === 0 && (
+        {patients.length === 0 && !loading && (
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,6 +180,21 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalCount > 0 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalCount={pagination.totalCount}
+            pageSize={pagination.pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
+        </div>
+      )}
     </div>
   )
 }
