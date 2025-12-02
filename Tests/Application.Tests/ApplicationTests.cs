@@ -1,4 +1,5 @@
 using HealthHub.Application.Commands;
+using HealthHub.Application.DTOs;
 using HealthHub.Application.Handlers;
 using HealthHub.Application.Queries;
 using HealthHub.Domain.Entities;
@@ -93,7 +94,8 @@ public class GetPatientsQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(2, result.Count());
+        Assert.Equal(2, result.Nodes.Count());
+        Assert.Equal(2, result.TotalCount);
         mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -120,8 +122,9 @@ public class GetPatientsQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Jan", result.First().FirstName);
+        Assert.Single(result.Nodes);
+        Assert.Equal("Jan", result.Nodes.First().FirstName);
+        Assert.Equal(1, result.TotalCount);
         mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -149,8 +152,11 @@ public class GetPatientsQueryHandlerTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Equal("Petr", result.First().FirstName); // Second page, first item
+        Assert.Single(result.Nodes);
+        Assert.Equal("Petr", result.Nodes.First().FirstName); // Second page, first item
+        Assert.Equal(3, result.TotalCount);
+        Assert.True(result.PageInfo.HasNextPage);
+        Assert.True(result.PageInfo.HasPreviousPage);
         mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }
