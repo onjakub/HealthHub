@@ -7,13 +7,15 @@ import { useState } from 'react'
 export default function DiagnosesList() {
   const [filters, setFilters] = useState({
     type: '',
-    createdAfter: '2023-01-01T00:00:00Z'
+    createdAfter: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString().split('T')[0] + 'T00:00:00Z',
+    createdBefore: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T23:59:59Z'
   })
 
   const { loading, error, data, refetch } = useQuery(GET_DIAGNOSES, {
     variables: {
       type: filters.type,
       createdAfter: filters.createdAfter,
+      createdBefore: filters.createdBefore,
       skip: 0,
       take: 10
     }
@@ -27,6 +29,7 @@ export default function DiagnosesList() {
     refetch({
       type: filters.type,
       createdAfter: filters.createdAfter,
+      createdBefore: filters.createdBefore,
       skip: 0,
       take: 10
     })
@@ -44,7 +47,7 @@ export default function DiagnosesList() {
       {/* Filter Section */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Type
@@ -65,6 +68,17 @@ export default function DiagnosesList() {
               type="date"
               value={filters.createdAfter.split('T')[0]}
               onChange={(e) => handleFilterChange('createdAfter', e.target.value + 'T00:00:00Z')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Created Before
+            </label>
+            <input
+              type="date"
+              value={filters.createdBefore.split('T')[0]}
+              onChange={(e) => handleFilterChange('createdBefore', e.target.value + 'T23:59:59Z')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
