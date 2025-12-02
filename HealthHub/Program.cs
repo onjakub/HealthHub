@@ -110,8 +110,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HealthHubDbContext>();
-    await db.Database.EnsureDeletedAsync();
-    await db.Database.EnsureCreatedAsync();
+    //await db.Database.EnsureDeletedAsync();
+    //await db.Database.EnsureCreatedAsync();
 }
 
 if (app.Environment.IsDevelopment())

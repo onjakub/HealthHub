@@ -9,10 +9,14 @@ namespace HealthHub.Infrastructure.Repositories;
 public class DiagnosticResultRepository : IDiagnosticResultRepository
 {
     private readonly HealthHubDbContext _context;
+    private readonly ILogger<DiagnosticResultRepository> _logger;
 
-    public DiagnosticResultRepository(HealthHubDbContext context)
+    public DiagnosticResultRepository(
+        HealthHubDbContext context,
+        ILogger<DiagnosticResultRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<DiagnosticResult>> GetDiagnosesAsync(
@@ -21,7 +25,9 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
         int? take = null,
         CancellationToken cancellationToken = default)
     {
-        var query = _context.DiagnosticResults.AsQueryable();
+        var query = _context.DiagnosticResults
+            .Include(d => d.Patient)
+            .AsQueryable();
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(filter.Type))

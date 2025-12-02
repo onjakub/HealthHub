@@ -6,6 +6,7 @@ public class DiagnosticResult
 {
     public Guid Id { get; private set; }
     public Guid PatientId { get; private set; }
+    public virtual Patient? Patient { get; private set; }
     public Diagnosis Diagnosis { get; private set; }
     public string? Notes { get; private set; }
     public DateTime TimestampUtc { get; private set; }

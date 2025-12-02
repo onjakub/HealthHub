@@ -418,6 +418,12 @@ return await db.Patients
 return await db.Patients
     .Select(p => new PatientDto { Id = p.Id, Name = p.Name })
     .ToListAsync();
+
+// Use eager loading to avoid N+1 queries
+return await db.DiagnosticResults
+    .Include(d => d.Patient)  // Eager load related patient data
+    .AsNoTracking()
+    .ToListAsync();
 ```
 
 #### GraphQL Optimization

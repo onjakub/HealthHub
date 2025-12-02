@@ -27,35 +27,26 @@ public class GetDiagnosesQueryHandler : IQueryHandler<GetDiagnosesQuery, IEnumer
             query.Take,
             cancellationToken);
 
-        var resultDtos = new List<DiagnosticResultDto>();
-        
-        foreach (var result in results)
+        return results.Select(result => new DiagnosticResultDto
         {
-            var patient = await _patientRepository.GetByIdAsync(result.PatientId, cancellationToken);
-            
-            resultDtos.Add(new DiagnosticResultDto
+            Id = result.Id,
+            PatientId = result.PatientId,
+            Patient = result.Patient != null ? new PatientDto
             {
-                Id = result.Id,
-                PatientId = result.PatientId,
-                Patient = patient != null ? new PatientDto
-                {
-                    Id = patient.Id,
-                    FirstName = patient.Name.FirstName,
-                    LastName = patient.Name.LastName,
-                    FullName = patient.Name.FullName,
-                    DateOfBirth = patient.DateOfBirth,
-                    Age = patient.GetAge(),
-                    LastDiagnosis = patient.GetLastDiagnosis(),
-                    CreatedAt = patient.CreatedAt
-                } : null,
-                Diagnosis = result.Diagnosis.Value,
-                Notes = result.Notes,
-                TimestampUtc = result.TimestampUtc,
-                CreatedAt = result.CreatedAt,
-                IsActive = result.IsActive
-            });
-        }
-        
-        return resultDtos;
+                Id = result.Patient.Id,
+                FirstName = result.Patient.Name.FirstName,
+                LastName = result.Patient.Name.LastName,
+                FullName = result.Patient.Name.FullName,
+                DateOfBirth = result.Patient.DateOfBirth,
+                Age = result.Patient.GetAge(),
+                LastDiagnosis = result.Patient.GetLastDiagnosis(),
+                CreatedAt = result.Patient.CreatedAt
+            } : null,
+            Diagnosis = result.Diagnosis.Value,
+            Notes = result.Notes,
+            TimestampUtc = result.TimestampUtc,
+            CreatedAt = result.CreatedAt,
+            IsActive = result.IsActive
+        }).ToList();
     }
 }

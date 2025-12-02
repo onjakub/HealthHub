@@ -56,8 +56,11 @@ public class HealthHubDbContext(DbContextOptions<HealthHubDbContext> options) : 
                     .HasColumnName("Diagnosis");
             });
 
-            entity.Property(d => d.PatientId)
-                .IsRequired();
+            entity.HasOne(d => d.Patient)
+                .WithMany(p => p.DiagnosticResults)
+                .HasForeignKey(d => d.PatientId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.Property(d => d.Notes)
                 .HasMaxLength(2000);
