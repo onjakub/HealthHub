@@ -1,8 +1,8 @@
-import { useQuery } from '@apollo/client'
+import { useLazyQuery } from '@apollo/client'
 import { GET_DIAGNOSES } from '@/lib/queries'
 import { format } from 'date-fns'
 import { cs } from 'date-fns/locale'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Pagination from '@/components/ui/Pagination'
 import { PaginationState } from '@/lib/types'
 
@@ -10,8 +10,11 @@ export default function DiagnosesList() {
   const [filters, setFilters] = useState({
     type: '',
     createdAfter: new Date(Date.UTC(new Date().getFullYear(), 0, 1)).toISOString().split('T')[0] + 'T00:00:00Z',
-    createdBefore: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T23:59:59Z'
+    createdBefore: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] + 'T23:59:59Z',
+    isActive: 'active'
   })
+  const [hasFocus, setHasFocus] = useState(false)
+  const typeInputRef = useRef<HTMLInputElement>(null)
 
   const [pagination, setPagination] = useState<PaginationState>({
     currentPage: 1,
@@ -20,19 +23,33 @@ export default function DiagnosesList() {
     totalPages: 0
   })
 
-  const { loading, error, data, refetch } = useQuery(GET_DIAGNOSES, {
-    variables: {
-      type: filters.type || null,
-      createdAfter: filters.createdAfter || null,
-      createdBefore: filters.createdBefore || null,
-      skip: (pagination.currentPage - 1) * pagination.pageSize,
-      take: pagination.pageSize
-    }
-  })
+  const [getDiagnoses, { loading, error, data }] = useLazyQuery(GET_DIAGNOSES)
 
   const diagnoses = data?.diagnoses?.nodes || []
   const totalCount = data?.diagnoses?.totalCount || 0
-  const pageInfo = data?.diagnoses?.pageInfo || {}
+  // pageInfo is available but not currently used: data?.diagnoses?.pageInfo
+
+  // Load data when filters or pagination change
+  useEffect(() => {
+    // Always load data when filters change, even if they're empty
+    getDiagnoses({
+      variables: {
+        type: filters.type || null,
+        createdAfter: filters.createdAfter || null,
+        createdBefore: filters.createdBefore || null,
+        isActive: filters.isActive === 'active' ? true : filters.isActive === 'inactive' ? false : null,
+        skip: (pagination.currentPage - 1) * pagination.pageSize,
+        take: pagination.pageSize
+      }
+    })
+  }, [filters, pagination.currentPage, pagination.pageSize])
+
+  // Restore focus after re-renders if input had focus before
+  useEffect(() => {
+    if (hasFocus && typeInputRef.current) {
+      typeInputRef.current.focus()
+    }
+  })
 
   // Update pagination state when data changes
   useEffect(() => {
@@ -48,21 +65,21 @@ export default function DiagnosesList() {
 
   const handleFilterChange = (field: string, value: string) => {
     setFilters(prev => ({ ...prev, [field]: value }))
+    // Reset to first page when filter changes
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
-  const applyFilters = () => {
-    setPagination(prev => ({ ...prev, currentPage: 1 }))
-    refetch({
-      type: filters.type || null,
-      createdAfter: filters.createdAfter || null,
-      createdBefore: filters.createdBefore || null,
-      skip: 0,
-      take: pagination.pageSize
-    })
+  const handleFocus = () => {
+    setHasFocus(true)
+  }
+
+  const handleBlur = () => {
+    setHasFocus(false)
   }
 
   const handlePageChange = (page: number) => {
     setPagination(prev => ({ ...prev, currentPage: page }))
+    // The useEffect will automatically trigger the query with new pagination
   }
 
   const handlePageSizeChange = (pageSize: number) => {
@@ -72,9 +89,11 @@ export default function DiagnosesList() {
       pageSize,
       currentPage: newPage
     }))
+    // The useEffect will automatically trigger the query with new pagination
   }
 
-  if (loading) return <div>Loading...</div>
+  // Only show loading/error if we have data or are currently loading
+  if (loading && data) return <div>Loading...</div>
   if (error) return <div>Error: {error.message}</div>
 
   return (
@@ -91,16 +110,19 @@ export default function DiagnosesList() {
       {/* Filter Section */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Type
             </label>
             <input
+              ref={typeInputRef}
               type="text"
               value={filters.type}
               onChange={(e) => handleFilterChange('type', e.target.value)}
-              placeholder="Filter by type..."
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              placeholder="Filter by diagnosis type..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -126,13 +148,21 @@ export default function DiagnosesList() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              value={filters.isActive}
+              onChange={(e) => handleFilterChange('isActive', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
         </div>
-        <button
-          onClick={applyFilters}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          Apply Filters
-        </button>
       </div>
       
       <div className="overflow-x-auto">
@@ -186,7 +216,13 @@ export default function DiagnosesList() {
         </table>
       </div>
 
-      {diagnoses.length === 0 && !loading && (
+      {!data && (
+        <div className="text-center py-8 text-gray-500">
+          Use the filters above to search for diagnoses
+        </div>
+      )}
+      
+      {data && diagnoses.length === 0 && !loading && (
         <div className="text-center py-8 text-gray-500">
           No diagnoses found
         </div>

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using HealthHub.Domain.Entities;
 using HealthHub.Domain.Interfaces;
 using HealthHub.Infrastructure.Data;
@@ -8,10 +9,12 @@ namespace HealthHub.Infrastructure.Repositories;
 public class PatientRepository : IPatientRepository
 {
     private readonly HealthHubDbContext _context;
+    private readonly ILogger<PatientRepository> _logger;
 
-    public PatientRepository(HealthHubDbContext context)
+    public PatientRepository(HealthHubDbContext context, ILogger<PatientRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<Patient?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -76,11 +79,15 @@ public class PatientRepository : IPatientRepository
         // Apply search filter if provided
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            _logger.LogDebug("Applying search filter with term: {SearchTerm}", searchTerm);
+            
+            // Use EF.Functions.ILike for PostgreSQL case-insensitive search
+            // This replaces string.Contains with StringComparison.OrdinalIgnoreCase which EF Core cannot translate
             query = query.Where(p =>
-                p.Name.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Name.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                EF.Functions.ILike(p.Name.FirstName, $"%{searchTerm}%") ||
+                EF.Functions.ILike(p.Name.LastName, $"%{searchTerm}%") ||
                 p.DiagnosticResults.Any(d =>
-                    d.Diagnosis.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    EF.Functions.ILike(d.Diagnosis.Value, $"%{searchTerm}%"))
             );
         }
 
@@ -103,11 +110,15 @@ public class PatientRepository : IPatientRepository
         // Apply search filter if provided
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            _logger.LogDebug("Applying count search filter with term: {SearchTerm}", searchTerm);
+            
+            // Use EF.Functions.ILike for PostgreSQL case-insensitive search
+            // This replaces string.Contains with StringComparison.OrdinalIgnoreCase which EF Core cannot translate
             query = query.Where(p =>
-                p.Name.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Name.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                EF.Functions.ILike(p.Name.FirstName, $"%{searchTerm}%") ||
+                EF.Functions.ILike(p.Name.LastName, $"%{searchTerm}%") ||
                 p.DiagnosticResults.Any(d =>
-                    d.Diagnosis.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    EF.Functions.ILike(d.Diagnosis.Value, $"%{searchTerm}%"))
             );
         }
 

@@ -3,6 +3,7 @@ using HealthHub.Domain.Entities;
 using HealthHub.Domain.Interfaces;
 using HealthHub.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace HealthHub.Infrastructure.Repositories;
 
@@ -32,7 +33,12 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
         // Apply filters
         if (!string.IsNullOrWhiteSpace(filter.Type))
         {
-            query = query.Where(d => d.Diagnosis.Value.Contains(filter.Type));
+            query = query.Where(d => d.Diagnosis.Value.ToLower().Contains(filter.Type.ToLower()));
+        }
+
+        if (filter.IsActive.HasValue)
+        {
+            query = query.Where(d => d.IsActive == filter.IsActive.Value);
         }
 
         if (filter.CreatedAfter.HasValue)
@@ -121,7 +127,12 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
         // Apply filters
         if (!string.IsNullOrWhiteSpace(filter.Type))
         {
-            query = query.Where(d => d.Diagnosis.Value.Contains(filter.Type));
+            query = query.Where(d => d.Diagnosis.Value.ToLower().Contains(filter.Type.ToLower()));
+        }
+
+        if (filter.IsActive.HasValue)
+        {
+            query = query.Where(d => d.IsActive == filter.IsActive.Value);
         }
 
         if (filter.CreatedAfter.HasValue)

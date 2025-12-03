@@ -110,6 +110,7 @@ public class Query
         string? type = null,
         DateTime? createdAfter = null,
         DateTime? createdBefore = null,
+        bool? isActive = null,
         int? skip = null,
         int? take = null,
         CancellationToken cancellationToken = default)
@@ -122,7 +123,8 @@ public class Query
             {
                 Type = type,
                 CreatedAfter = createdAfter,
-                CreatedBefore = createdBefore
+                CreatedBefore = createdBefore,
+                IsActive = isActive
             };
 
             var query = new GetDiagnosesQuery

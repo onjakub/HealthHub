@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@apollo/client'
 import { GET_PATIENTS } from '../../lib/queries'
 import Pagination from '../ui/Pagination'
@@ -20,16 +20,38 @@ interface PatientListProps {
 
 export default function PatientList({ onEditPatient }: PatientListProps) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [pagination, setPagination] = useState<PaginationState>({
     currentPage: 1,
     pageSize: 10,
     totalCount: 0,
     totalPages: 0
   })
+  const [hasFocus, setHasFocus] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  
+  // Debounce search term to prevent excessive re-renders
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      setPagination(prev => ({ ...prev, currentPage: 1 }))
+    }, 300) // 300ms debounce delay
+    
+    return () => {
+      clearTimeout(timerId)
+    }
+  }, [searchTerm])
+
+  // Restore focus after re-renders if input had focus before
+  useEffect(() => {
+    if (hasFocus && searchInputRef.current) {
+      searchInputRef.current.focus()
+    }
+  })
 
   const { loading, error, data, refetch } = useQuery(GET_PATIENTS, {
     variables: {
-      searchTerm: searchTerm || null,
+      searchTerm: debouncedSearchTerm || null,
       page: pagination.currentPage,
       pageSize: pagination.pageSize
     }
@@ -90,7 +112,15 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    // Don't set pagination here - let the debounce effect handle it
+  }
+
+  const handleFocus = () => {
+    setHasFocus(true)
+  }
+
+  const handleBlur = () => {
+    setHasFocus(false)
   }
 
   return (
@@ -102,10 +132,13 @@ export default function PatientList({ onEditPatient }: PatientListProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search patients by name..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             className="form-input pl-10"
           />
           {searchTerm && (
