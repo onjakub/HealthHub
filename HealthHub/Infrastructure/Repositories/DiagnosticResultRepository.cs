@@ -136,4 +136,13 @@ public class DiagnosticResultRepository : IDiagnosticResultRepository
 
         return await query.CountAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<DiagnosticResult>> GetByPatientIdsAsync(IReadOnlyList<Guid> patientIds, CancellationToken cancellationToken = default)
+    {
+        return await _context.DiagnosticResults
+            .Where(d => patientIds.Contains(d.PatientId))
+            .OrderByDescending(d => d.TimestampUtc)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }

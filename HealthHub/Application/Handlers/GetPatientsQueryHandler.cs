@@ -15,27 +15,17 @@ public class GetPatientsQueryHandler : IQueryHandler<GetPatientsQuery, Paginatio
 
     public async Task<PaginationResponseDto<PatientDto>> Handle(GetPatientsQuery query, CancellationToken cancellationToken)
     {
-        var allPatients = await _patientRepository.GetAllAsync(cancellationToken);
+        // Use the new filtered method to avoid loading all patients into memory
+        var filteredPatients = await _patientRepository.GetFilteredAsync(
+            query.SearchTerm,
+            query.Page,
+            query.PageSize,
+            cancellationToken);
 
-        // Apply search filter if provided
-        var filteredPatients = allPatients.AsEnumerable();
-        if (!string.IsNullOrWhiteSpace(query.SearchTerm))
-        {
-            filteredPatients = filteredPatients.Where(p =>
-                p.Name.FirstName.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.Name.LastName.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                p.GetLastDiagnosis()?.Contains(query.SearchTerm, StringComparison.OrdinalIgnoreCase) == true
-            );
-        }
-
-        var totalCount = filteredPatients.Count();
-
-        // Apply pagination if provided
-        if (query.Page.HasValue && query.PageSize.HasValue)
-        {
-            var skip = (query.Page.Value - 1) * query.PageSize.Value;
-            filteredPatients = filteredPatients.Skip(skip).Take(query.PageSize.Value);
-        }
+        // Get total count for pagination
+        var totalCount = await _patientRepository.GetFilteredCountAsync(
+            query.SearchTerm,
+            cancellationToken);
 
         var patientDtos = filteredPatients.Select(patient => new PatientDto
         {

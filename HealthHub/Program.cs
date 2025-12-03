@@ -1,20 +1,51 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using HealthHub.Application.Commands;
 using HealthHub.Application.DTOs;
 using HealthHub.Application.Handlers;
 using HealthHub.Application.Queries;
 using HealthHub.Application.Services;
+using HealthHub.Domain.Entities;
+using HealthHub.Domain.Exceptions;
 using HealthHub.Domain.Interfaces;
+using HealthHub.Infrastructure.Authentication;
 using HealthHub.Infrastructure.Data;
 using HealthHub.Infrastructure.Repositories;
 using HealthHub.Presentation.GraphQL;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using HotChocolate.Execution;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Fixed window limiter for API endpoints
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 100; // 100 requests
+        opt.Window = TimeSpan.FromMinutes(1); // per 1 minute
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 50; // max 50 queued requests
+    });
+
+    // Sliding window limiter for GraphQL (more strict)
+    options.AddSlidingWindowLimiter("sliding", opt =>
+    {
+        opt.PermitLimit = 50; // 50 requests
+        opt.Window = TimeSpan.FromMinutes(1); // per 1 minute
+        opt.SegmentsPerWindow = 6; // 10-second segments
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 20; // max 20 queued requests
+    });
+});
 
 // OpenAPI (optional)
 builder.Services.AddOpenApi();
@@ -34,6 +65,7 @@ builder.Services.AddScoped<IDiagnosticResultRepository, DiagnosticResultReposito
 
 // Register services
 builder.Services.AddScoped<ILoggingService, LoggingService>();
+builder.Services.AddDataLoaderServices();
 
 // Register command handlers
 builder.Services.AddScoped<ICommandHandler<CreatePatientCommand, PatientDto>, CreatePatientCommandHandler>();
@@ -45,8 +77,15 @@ builder.Services.AddScoped<ICommandHandler<DeletePatientCommand, bool>, DeletePa
 // Register query handlers
 builder.Services.AddScoped<IQueryHandler<GetPatientsQuery, PaginationResponseDto<PatientDto>>, GetPatientsQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetPatientByIdQuery, PatientDetailDto?>, GetPatientByIdQueryHandler>();
-builder.Services.AddScoped<IQueryHandler<GetPatientDiagnosticResultsQuery, IEnumerable<DiagnosticResultDto>>, GetPatientDiagnosticResultsQueryHandler>();
-builder.Services.AddScoped<IQueryHandler<GetDiagnosesQuery, PaginationResponseDto<DiagnosticResultDto>>, GetDiagnosesQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<GetPatientDiagnosticResultsQuery, IEnumerable<DiagnosticResultDto>>>(provider =>
+    new GetPatientDiagnosticResultsQueryHandler(
+        provider.GetRequiredService<IDiagnosticResultRepository>()
+    ));
+builder.Services.AddScoped<IQueryHandler<GetDiagnosesQuery, PaginationResponseDto<DiagnosticResultDto>>>(provider =>
+    new GetDiagnosesQueryHandler(
+        provider.GetRequiredService<IDiagnosticResultRepository>(),
+        provider.GetRequiredService<DataLoaderService>()
+    ));
 
 // JWT Authentication
 var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -86,7 +125,8 @@ builder.Services
     .AddMutationType<Mutation>()
     .AddFiltering()
     .AddSorting()
-    .AddProjections();
+    .AddProjections()
+    .AddErrorFilter<GraphQLErrorFilter>();
 
 // Static files for React frontend
 builder.Services.AddRouting();
@@ -179,6 +219,12 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Custom error handling middleware
+app.UseCustomErrorHandling();
+
+// Rate limiting middleware - apply to API and GraphQL endpoints
+app.UseRateLimiter();
+
 // No MVC controllers are used; GraphQL and minimal APIs are mapped below
 
 // Simple token issuing endpoint for demo purposes
@@ -192,7 +238,7 @@ app.MapPost("/auth/token", async (HttpContext context) =>
             var json = System.Text.Json.JsonDocument.Parse(body);
             var username = json.RootElement.GetProperty("username").GetString();
             var password = json.RootElement.GetProperty("password").GetString();
-            
+
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 context.Response.StatusCode = 400;
@@ -212,7 +258,7 @@ app.MapPost("/auth/token", async (HttpContext context) =>
                 signingCredentials: creds);
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            
+
             // Manual JSON serialization to avoid .NET 10.0 PipeWriter issue
             var responseJson = $"{{\"token\":\"{jwt}\"}}";
             context.Response.StatusCode = 200;
@@ -225,12 +271,15 @@ app.MapPost("/auth/token", async (HttpContext context) =>
             await context.Response.WriteAsync("{\"error\":\"Invalid request format\"}");
         }
     })
-    .AllowAnonymous();
+    .AllowAnonymous()
+    .RequireRateLimiting("fixed");
 
-app.MapGraphQL("/graphql");
+app.MapGraphQL("/graphql")
+    .RequireRateLimiting("sliding");
 
 // Health check endpoint
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
+app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
+    .RequireRateLimiting("fixed");
 
 // SPA fallback: any non-API, non-static route serves index.html from wwwroot
 // This ensures React Router works correctly

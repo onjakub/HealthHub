@@ -77,15 +77,24 @@ public class GetPatientsQueryHandlerTests
         // Arrange
         var mockRepository = new Mock<IPatientRepository>();
         var handler = new GetPatientsQueryHandler(mockRepository.Object);
-        
+
         var patients = new List<Patient>
         {
             Patient.Create(PatientName.Create("Jan", "Novák"), new DateOnly(1980, 1, 1)),
             Patient.Create(PatientName.Create("Petr", "Svoboda"), new DateOnly(1990, 1, 1))
         };
 
-        mockRepository.Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
+        mockRepository.Setup(repo => repo.GetFilteredAsync(
+            It.IsAny<string>(),
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<CancellationToken>()))
             .ReturnsAsync(patients);
+
+        mockRepository.Setup(repo => repo.GetFilteredCountAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(patients.Count);
 
         var query = new GetPatientsQuery();
 
@@ -96,7 +105,10 @@ public class GetPatientsQueryHandlerTests
         Assert.NotNull(result);
         Assert.Equal(2, result.Nodes.Count());
         Assert.Equal(2, result.TotalCount);
-        mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredAsync(
+            null, null, null, It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredCountAsync(
+            null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -105,15 +117,28 @@ public class GetPatientsQueryHandlerTests
         // Arrange
         var mockRepository = new Mock<IPatientRepository>();
         var handler = new GetPatientsQueryHandler(mockRepository.Object);
-        
-        var patients = new List<Patient>
+
+        var allPatients = new List<Patient>
         {
             Patient.Create(PatientName.Create("Jan", "Novák"), new DateOnly(1980, 1, 1)),
             Patient.Create(PatientName.Create("Petr", "Svoboda"), new DateOnly(1990, 1, 1))
         };
 
-        mockRepository.Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(patients);
+        var filteredPatients = allPatients.Where(p =>
+            p.Name.FirstName.Contains("Jan", StringComparison.OrdinalIgnoreCase) ||
+            p.Name.LastName.Contains("Jan", StringComparison.OrdinalIgnoreCase)).ToList();
+
+        mockRepository.Setup(repo => repo.GetFilteredAsync(
+            "Jan",
+            It.IsAny<int?>(),
+            It.IsAny<int?>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(filteredPatients);
+
+        mockRepository.Setup(repo => repo.GetFilteredCountAsync(
+            "Jan",
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(filteredPatients.Count);
 
         var query = new GetPatientsQuery { SearchTerm = "Jan" };
 
@@ -125,7 +150,10 @@ public class GetPatientsQueryHandlerTests
         Assert.Single(result.Nodes);
         Assert.Equal("Jan", result.Nodes.First().FirstName);
         Assert.Equal(1, result.TotalCount);
-        mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredAsync(
+            "Jan", null, null, It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredCountAsync(
+            "Jan", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -134,16 +162,27 @@ public class GetPatientsQueryHandlerTests
         // Arrange
         var mockRepository = new Mock<IPatientRepository>();
         var handler = new GetPatientsQueryHandler(mockRepository.Object);
-        
-        var patients = new List<Patient>
+
+        var allPatients = new List<Patient>
         {
             Patient.Create(PatientName.Create("Jan", "Novák"), new DateOnly(1980, 1, 1)),
             Patient.Create(PatientName.Create("Petr", "Svoboda"), new DateOnly(1990, 1, 1)),
             Patient.Create(PatientName.Create("Anna", "Kovářová"), new DateOnly(2000, 1, 1))
         };
 
-        mockRepository.Setup(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(patients);
+        var paginatedPatients = allPatients.Skip(1).Take(1).ToList();
+
+        mockRepository.Setup(repo => repo.GetFilteredAsync(
+            It.IsAny<string>(),
+            2,
+            1,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(paginatedPatients);
+
+        mockRepository.Setup(repo => repo.GetFilteredCountAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(allPatients.Count);
 
         var query = new GetPatientsQuery { Page = 2, PageSize = 1 };
 
@@ -157,7 +196,10 @@ public class GetPatientsQueryHandlerTests
         Assert.Equal(3, result.TotalCount);
         Assert.True(result.PageInfo.HasNextPage);
         Assert.True(result.PageInfo.HasPreviousPage);
-        mockRepository.Verify(repo => repo.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredAsync(
+            null, 2, 1, It.IsAny<CancellationToken>()), Times.Once);
+        mockRepository.Verify(repo => repo.GetFilteredCountAsync(
+            null, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 

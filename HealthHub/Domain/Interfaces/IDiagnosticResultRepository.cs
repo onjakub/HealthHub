@@ -35,4 +35,14 @@ public interface IDiagnosticResultRepository
     Task<int> GetDiagnosesCountAsync(
         DiagnosisFilter filter,
         CancellationToken cancellationToken = default);
+
+   /// <summary>
+   /// Retrieves diagnostic results by patient IDs.
+   /// </summary>
+   /// <param name="patientIds">List of patient IDs to retrieve diagnostic results for.</param>
+   /// <param name="cancellationToken">Cancellation token.</param>
+   /// <returns>Collection of diagnostic results for the provided patient IDs.</returns>
+   Task<IEnumerable<DiagnosticResult>> GetByPatientIdsAsync(
+       IReadOnlyList<Guid> patientIds,
+       CancellationToken cancellationToken = default);
 }

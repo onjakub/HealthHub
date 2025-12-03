@@ -11,7 +11,7 @@ namespace Integration.Tests;
 public class GraphQLIntegrationTests : IDisposable
 {
     private readonly HttpClient _client;
-    private readonly string _baseUrl = "http://localhost:5001";
+    private readonly string _baseUrl = "http://localhost:5023";
     private readonly string _testConnectionString = "Host=localhost;Port=5433;Database=healthhub_test;Username=test_user;Password=test_password";
 
     public GraphQLIntegrationTests()

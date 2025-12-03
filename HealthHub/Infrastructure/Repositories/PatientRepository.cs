@@ -61,4 +61,67 @@ public class PatientRepository : IPatientRepository
     {
         return await _context.Patients.CountAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<Patient>> GetFilteredAsync(
+        string? searchTerm,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Patients
+            .Include(p => p.DiagnosticResults)
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Apply search filter if provided
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p =>
+                p.Name.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Name.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.DiagnosticResults.Any(d =>
+                    d.Diagnosis.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+
+        // Apply pagination if provided
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var skip = (page.Value - 1) * pageSize.Value;
+            query = query.Skip(skip).Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetFilteredCountAsync(
+        string? searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Patients.AsQueryable();
+
+        // Apply search filter if provided
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(p =>
+                p.Name.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.Name.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                p.DiagnosticResults.Any(d =>
+                    d.Diagnosis.Value.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            );
+        }
+
+        return await query.CountAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Patient>> GetByIdsAsync(
+        IReadOnlyList<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients
+            .Include(p => p.DiagnosticResults)
+            .Where(p => ids.Contains(p.Id))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
 }
