@@ -25,6 +25,7 @@
     <Project Path="Tests/Domain.Tests/Domain.Tests.csproj" />
     <Project Path="Tests/Integration.Tests/Integration.Tests.csproj" />
   </Folder>
+  <Project Path="HealthHub.Maui/HealthHub.Maui.csproj" />
   <Project Path="HealthHub/HealthHub.csproj" />
   <Project Path="McpHealtHubServer/McpHealtHubServer.csproj" />
 </Solution>

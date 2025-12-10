@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HealthHub.Maui.Services;
+using HealthHub.Maui.Views;
 
 namespace HealthHub.Maui.ViewModels;
 
@@ -33,13 +34,11 @@ public partial class MainViewModel : BaseViewModel
     {
         if (IsAuthenticated)
         {
-            await Application.Current?.MainPage?.Navigation.PushAsync(
-                Application.Current?.Handler?.MauiContext?.Services?.GetService<PatientsPage>());
+            await Shell.Current.GoToAsync(nameof(PatientsPage));
         }
         else
         {
-            await Application.Current?.MainPage?.Navigation.PushAsync(
-                Application.Current?.Handler?.MauiContext?.Services?.GetService<LoginPage>());
+            await Shell.Current.GoToAsync(nameof(LoginPage));
         }
     }
 
@@ -48,8 +47,7 @@ public partial class MainViewModel : BaseViewModel
     {
         if (!IsAuthenticated)
         {
-            await Application.Current?.MainPage?.Navigation.PushAsync(
-                Application.Current?.Handler?.MauiContext?.Services?.GetService<LoginPage>());
+            await Shell.Current.GoToAsync(nameof(LoginPage));
         }
     }
 
@@ -57,7 +55,7 @@ public partial class MainViewModel : BaseViewModel
     private async Task Logout()
     {
         await _authService.LogoutAsync();
-        await Application.Current?.MainPage?.Navigation.PopToRootAsync();
+        await Shell.Current.GoToAsync("//MainPage");
     }
 
     [RelayCommand]
@@ -65,4 +63,5 @@ public partial class MainViewModel : BaseViewModel
     {
         // Implement refresh logic as needed
     }
+
 }

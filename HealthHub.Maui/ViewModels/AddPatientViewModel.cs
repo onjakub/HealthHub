@@ -43,7 +43,7 @@ public partial class AddPatientViewModel : BaseViewModel
             try
             {
                 await _patientService.CreatePatientAsync(FirstName, LastName, DateOfBirth);
-                await Application.Current?.MainPage?.Navigation.PopAsync();
+                await Shell.Current.GoToAsync("//PatientsPage");
             }
             catch (Exception ex)
             {
@@ -55,6 +55,6 @@ public partial class AddPatientViewModel : BaseViewModel
     [RelayCommand]
     private async Task Cancel()
     {
-        await Application.Current?.MainPage?.Navigation.PopAsync();
+        await Shell.Current.GoToAsync("//PatientsPage");
     }
 }

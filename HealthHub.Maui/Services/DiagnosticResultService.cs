@@ -5,7 +5,7 @@ namespace HealthHub.Maui.Services;
 
 public class DiagnosticResultService : GraphQLClientService, IDiagnosticResultService
 {
-    public DiagnosticResultService(IGraphQLClient client, IAuthService authService) : base(client, authService)
+    public DiagnosticResultService(HttpClient httpClient, IAuthService authService) : base(httpClient, authService)
     {
     }
 

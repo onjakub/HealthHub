@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HealthHub.Maui.Services;
 
@@ -33,7 +34,7 @@ public partial class LoginViewModel : BaseViewModel
             var success = await _authService.LoginAsync(Username, Password);
             if (success)
             {
-                await Application.Current?.MainPage?.Navigation.PopAsync();
+                await Shell.Current.GoToAsync("//MainPage");
             }
             else
             {
@@ -45,6 +46,6 @@ public partial class LoginViewModel : BaseViewModel
     [RelayCommand]
     private async Task Cancel()
     {
-        await Application.Current?.MainPage?.Navigation.PopAsync();
+        await Shell.Current.GoToAsync("//MainPage");
     }
 }

@@ -1,70 +1,76 @@
-using GraphQL;
-using GraphQL.Client;
-using GraphQL.Client.Http;
-using GraphQL.Client.Serializer.Newtonsoft;
+using System.Net.Http;
+using System.Text;
 using HealthHub.Maui.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HealthHub.Maui.Services;
 
 public class GraphQLClientService
 {
-    protected readonly IGraphQLClient _client;
+    protected readonly HttpClient _httpClient;
     protected readonly IAuthService _authService;
 
-    public GraphQLClientService(IGraphQLClient client, IAuthService authService)
+    public GraphQLClientService(HttpClient httpClient, IAuthService authService)
     {
-        _client = client;
+        _httpClient = httpClient;
         _authService = authService;
     }
 
     protected async Task<T> ExecuteQueryAsync<T>(string query, object? variables = null)
     {
-        var request = new GraphQLRequest
+        var request = new
         {
-            Query = query,
-            Variables = variables
+            query,
+            variables
         };
 
         // Add authorization header if authenticated
         if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
         {
-            _client.HttpClient.DefaultRequestHeaders.Authorization = 
+            _httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.CurrentToken);
         }
 
-        var response = await _client.SendQueryAsync<T>(request);
-        
-        if (response.Errors != null && response.Errors.Any())
+        var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("", content);
+
+        if (!response.IsSuccessStatusCode)
         {
-            throw new Exception($"GraphQL Error: {string.Join(", ", response.Errors.Select(e => e.Message))}");
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"GraphQL Error: {response.StatusCode} - {errorContent}");
         }
 
-        return response.Data;
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseObject = JsonConvert.DeserializeObject<GraphQLResponse<T>>(responseContent);
+
+        if (responseObject == null)
+        {
+            throw new Exception("GraphQL response is null");
+        }
+
+        if (responseObject.Errors != null && responseObject.Errors.Any())
+        {
+            throw new Exception($"GraphQL Error: {string.Join(", ", responseObject.Errors.Select(e => e.Message))}");
+        }
+
+        return responseObject.Data;
     }
 
     protected async Task<T> ExecuteMutationAsync<T>(string mutation, object? variables = null)
     {
-        var request = new GraphQLRequest
-        {
-            Query = mutation,
-            Variables = variables
-        };
+        return await ExecuteQueryAsync<T>(mutation, variables);
+    }
 
-        // Add authorization header if authenticated
-        if (_authService.IsAuthenticated && !string.IsNullOrEmpty(_authService.CurrentToken))
-        {
-            _client.HttpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _authService.CurrentToken);
-        }
+    // Helper class for GraphQL response
+    private class GraphQLResponse<T>
+    {
+        public T Data { get; set; }
+        public List<GraphQLError> Errors { get; set; }
+    }
 
-        var response = await _client.SendMutationAsync<T>(request);
-        
-        if (response.Errors != null && response.Errors.Any())
-        {
-            throw new Exception($"GraphQL Error: {string.Join(", ", response.Errors.Select(e => e.Message))}");
-        }
-
-        return response.Data;
+    private class GraphQLError
+    {
+        public string? Message { get; set; }
     }
 }

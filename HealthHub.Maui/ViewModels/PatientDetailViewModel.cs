@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using HealthHub.Maui.Models;
 using HealthHub.Maui.Services;
 using System.Collections.ObjectModel;
+using System.Web;
 
 namespace HealthHub.Maui.ViewModels;
 
@@ -31,23 +32,34 @@ public partial class PatientDetailViewModel : BaseViewModel
     }
 
     [RelayCommand]
-    private async Task LoadPatient(Guid patientId)
+    private async Task LoadPatientDetails()
     {
-        await ExecuteWithLoading(async () =>
+        // Get patient ID from query parameters
+        if (Shell.Current.CurrentState.Location.OriginalString.Contains("id="))
         {
-            Patient = await _patientService.GetPatientAsync(patientId);
-            
-            if (Patient != null)
+            var uri = new Uri(Shell.Current.CurrentState.Location.OriginalString);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var patientIdString = query["id"];
+
+            if (Guid.TryParse(patientIdString, out var patientId))
             {
-                DiagnosticResults.Clear();
-                foreach (var result in Patient.DiagnosticResults)
+                await ExecuteWithLoading(async () =>
                 {
-                    DiagnosticResults.Add(result);
-                }
-                
-                Title = $"{Patient.FirstName} {Patient.LastName}";
+                    Patient = await _patientService.GetPatientAsync(patientId);
+
+                    if (Patient != null)
+                    {
+                        DiagnosticResults.Clear();
+                        foreach (var result in Patient.DiagnosticResults)
+                        {
+                            DiagnosticResults.Add(result);
+                        }
+
+                        Title = $"{Patient.FirstName} {Patient.LastName}";
+                    }
+                });
             }
-        });
+        }
     }
 
     [RelayCommand]
@@ -85,19 +97,13 @@ public partial class PatientDetailViewModel : BaseViewModel
     {
         if (Patient != null)
         {
-            await LoadPatient(Patient.Id);
+            await LoadPatientDetails();
         }
     }
 
     [RelayCommand]
-    private async Task GoBack()
+    private async Task Back()
     {
-        await Application.Current?.MainPage?.Navigation.PopAsync();
-    }
-
-    public override Task OnAppearing()
-    {
-        // This would be called when the page appears
-        return base.OnAppearing();
+        await Shell.Current.GoToAsync("//PatientsPage");
     }
 }

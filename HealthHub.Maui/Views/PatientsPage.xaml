@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:HealthHub.Maui.ViewModels"
+             x:DataType="viewmodels:PatientsViewModel"
+             x:Class="HealthHub.Maui.Views.PatientsPage"
+             Title="Patients">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <!-- Search Bar -->
+            <Frame BackgroundColor="#F5F5F5"
+                   CornerRadius="10"
+                   Padding="10">
+                <HorizontalStackLayout Spacing="10">
+                    <Image Source="search.png"
+                           WidthRequest="20"
+                           HeightRequest="20"
+                           VerticalOptions="Center"/>
+                    <Entry Text="{Binding SearchTerm}"
+                           Placeholder="Search patients..."
+                           FontSize="16"
+                           HorizontalOptions="FillAndExpand"/>
+                    <Button Text="Search"
+                            Command="{Binding SearchCommand}"
+                            BackgroundColor="{DynamicResource Primary}"
+                            TextColor="White"
+                            CornerRadius="5"
+                            Padding="15,5"/>
+                </HorizontalStackLayout>
+            </Frame>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}"
+                             IsRunning="{Binding IsLoading}"
+                             Color="{DynamicResource Primary}"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"/>
+
+            <!-- Patients List -->
+            <CollectionView ItemsSource="{Binding Patients}"
+                          SelectionMode="Single"
+                          SelectionChangedCommand="{Binding SelectPatientCommand}"
+                          SelectionChangedCommandParameter="{Binding SelectedItem}">
+                <CollectionView.EmptyView>
+                    <Label Text="No patients found"
+                           FontSize="16"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"
+                           Margin="0,50,0,0"/>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame BackgroundColor="White"
+                               CornerRadius="10"
+                               Padding="15"
+                               Margin="0,5,0,5">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="{Binding FullName}"
+                                       FontSize="18"
+                                       FontAttributes="Bold"/>
+                                <Label Text="{Binding Email}"
+                                       FontSize="14"
+                                       TextColor="#666"/>
+                                <Label Text="{Binding PhoneNumber}"
+                                       FontSize="14"
+                                       TextColor="#666"/>
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Pagination Controls -->
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                Spacing="15">
+                <Button Text="Previous"
+                        Command="{Binding PreviousPageCommand}"
+                        IsEnabled="{Binding HasPreviousPage}"
+                        BackgroundColor="{DynamicResource Secondary}"
+                        TextColor="White"
+                        CornerRadius="5"
+                        Padding="15,10"/>
+
+                <Label Text="{Binding CurrentPage} of {Binding TotalPages}"
+                       VerticalOptions="Center"
+                       FontSize="16"/>
+
+                <Button Text="Next"
+                        Command="{Binding NextPageCommand}"
+                        IsEnabled="{Binding HasNextPage}"
+                        BackgroundColor="{DynamicResource Primary}"
+                        TextColor="White"
+                        CornerRadius="5"
+                        Padding="15,10"/>
+            </HorizontalStackLayout>
+
+            <!-- Add Patient Button -->
+            <Button Text="Add New Patient"
+                    Command="{Binding AddPatientCommand}"
+                    BackgroundColor="{DynamicResource Primary}"
+                    TextColor="White"
+                    CornerRadius="10"
+                    Padding="15,10"
+                    HorizontalOptions="FillAndExpand"/>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="#DC3545"
+                   FontSize="14"
+                   IsVisible="{Binding HasError}"
+                   HorizontalOptions="Center"
+                   Margin="0,20,0,0"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

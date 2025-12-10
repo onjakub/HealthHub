@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HealthHub.Maui.Models;
 using HealthHub.Maui.Services;
+using HealthHub.Maui.Views;
 using System.Collections.ObjectModel;
 
 namespace HealthHub.Maui.ViewModels;
@@ -83,8 +84,8 @@ public partial class PatientsViewModel : BaseViewModel
     [RelayCommand]
     private async Task AddPatient()
     {
-        await Application.Current?.MainPage?.Navigation.PushAsync(
-            Application.Current?.Handler?.MauiContext?.Services?.GetService<AddPatientPage>());
+        // Use Shell navigation instead of deprecated Application.MainPage
+        await Shell.Current.GoToAsync(nameof(AddPatientPage));
     }
 
     [RelayCommand]
@@ -92,20 +93,18 @@ public partial class PatientsViewModel : BaseViewModel
     {
         if (patient != null)
         {
-            await Application.Current?.MainPage?.Navigation.PushAsync(
-                Application.Current?.Handler?.MauiContext?.Services?.GetService<PatientDetailPage>());
+            // Pass patient ID as query parameter
+            var navParam = new Dictionary<string, object>
+            {
+                { "PatientId", patient.Id }
+            };
+            await Shell.Current.GoToAsync($"{nameof(PatientDetailPage)}?id={patient.Id}");
         }
     }
 
     [RelayCommand]
     private async Task Refresh()
     {
-        await LoadPatients();
-    }
-
-    public override async Task OnAppearing()
-    {
-        await base.OnAppearing();
         await LoadPatients();
     }
 }
