@@ -1,0 +1,79 @@
+using Microsoft.Extensions.Logging;
+using HealthHub.Maui.ViewModels;
+using HealthHub.Maui.Views;
+using HealthHub.Maui.Services;
+using HealthHub.Maui.Models;
+
+namespace HealthHub.Maui;
+
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .UseMauiCommunityToolkit()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
+
+#if DEBUG
+        builder.Logging.AddDebug();
+#endif
+
+        // Register services
+        RegisterServices(builder.Services);
+        
+        // Register ViewModels
+        RegisterViewModels(builder.Services);
+        
+        // Register Views
+        RegisterViews(builder.Services);
+
+        return builder.Build();
+    }
+
+    private static void RegisterServices(IServiceCollection services)
+    {
+        // GraphQL Client
+        services.AddSingleton<IGraphQLClient>(provider =>
+        {
+            var httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri("http://localhost:5000/graphql/");
+            return new GraphQLHttpClient(new GraphQLHttpClientOptions
+            {
+                EndPoint = new Uri("http://localhost:5000/graphql/"),
+                HttpClient = httpClient
+            }, new NewtonsoftJsonSerializer());
+        });
+
+        // Application services
+        services.AddSingleton<IAuthService, AuthService>();
+        services.AddSingleton<IPatientService, PatientService>();
+        services.AddSingleton<IDiagnosticResultService, DiagnosticResultService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+    }
+
+    private static void RegisterViewModels(IServiceCollection services)
+    {
+        services.AddTransient<PatientsViewModel>();
+        services.AddTransient<PatientDetailViewModel>();
+        services.AddTransient<AddPatientViewModel>();
+        services.AddTransient<DiagnosesViewModel>();
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<MainViewModel>();
+    }
+
+    private static void RegisterViews(IServiceCollection services)
+    {
+        services.AddTransient<PatientsPage>();
+        services.AddTransient<PatientDetailPage>();
+        services.AddTransient<AddPatientPage>();
+        services.AddTransient<DiagnosesPage>();
+        services.AddTransient<LoginPage>();
+        services.AddTransient<MainPage>();
+    }
+}

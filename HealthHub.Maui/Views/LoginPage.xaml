@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:HealthHub.Maui.ViewModels"
+             x:DataType="viewmodels:LoginViewModel"
+             x:Class="HealthHub.Maui.Views.LoginPage"
+             Title="Login">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <Label Text="Login" 
+                   FontSize="32" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   Margin="0,20,0,40" />
+
+            <!-- Username -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Username" FontSize="16" />
+                <Entry Text="{Binding Username}" 
+                       Placeholder="Enter username"
+                       FontSize="16"
+                       BackgroundColor="#F5F5F5"
+                       Padding="10" />
+            </VerticalStackLayout>
+
+            <!-- Password -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Password" FontSize="16" />
+                <Entry Text="{Binding Password}" 
+                       Placeholder="Enter password"
+                       IsPassword="True"
+                       FontSize="16"
+                       BackgroundColor="#F5F5F5"
+                       Padding="10" />
+            </VerticalStackLayout>
+
+            <!-- Login Button -->
+            <Button Text="Login" 
+                    FontSize="16"
+                    Command="{Binding LoginCommand}"
+                    BackgroundColor="{DynamicResource Primary}"
+                    TextColor="White"
+                    CornerRadius="5"
+                    Padding="15,10"
+                    Margin="0,20,0,0" />
+
+            <!-- Cancel Button -->
+            <Button Text="Cancel" 
+                    FontSize="16"
+                    Command="{Binding CancelCommand}"
+                    BackgroundColor="#6C757D"
+                    TextColor="White"
+                    CornerRadius="5"
+                    Padding="15,10" />
+
+            <!-- Demo Credentials -->
+            <Frame BackgroundColor="#E3F2FD" 
+                   CornerRadius="5" 
+                   Padding="15"
+                   Margin="0,20,0,0">
+                <VerticalStackLayout>
+                    <Label Text="Demo Credentials:" 
+                           FontSize="14" 
+                           FontAttributes="Bold" />
+                    <Label Text="Username: demo" 
+                           FontSize="12" />
+                    <Label Text="Password: demo" 
+                           FontSize="12" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                             IsRunning="{Binding IsLoading}" 
+                             Color="{DynamicResource Primary}"
+                             Margin="0,20,0,0" />
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}" 
+                   TextColor="#DC3545" 
+                   FontSize="14" 
+                   IsVisible="{Binding HasError}"
+                   HorizontalOptions="Center"
+                   Margin="0,20,0,0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
