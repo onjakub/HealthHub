@@ -28,7 +28,11 @@
                                FontSize="24"
                                FontAttributes="Bold"
                                HorizontalOptions="StartAndExpand"/>
-                        <Label Text="{Binding Patient.Age} years"
+                        <Label Text="{Binding Patient.Age}"
+                               FontSize="18"
+                               TextColor="#666"
+                               HorizontalOptions="End"/>
+                        <Label Text="years"
                                FontSize="18"
                                TextColor="#666"
                                HorizontalOptions="End"/>

@@ -6,7 +6,6 @@ public partial class PatientsPage : ContentPage
 {
     public PatientsPage(PatientsViewModel viewModel)
     {
-        InitializeComponent();
         BindingContext = viewModel;
     }
 

@@ -84,7 +84,10 @@
                         CornerRadius="5"
                         Padding="15,10"/>
 
-                <Label Text="{Binding CurrentPage} of {Binding TotalPages}"
+                <Label Text="{Binding CurrentPage}"
+                       VerticalOptions="Center"
+                       FontSize="16"/>
+                <Label Text="of {Binding TotalPages}"
                        VerticalOptions="Center"
                        FontSize="16"/>
 

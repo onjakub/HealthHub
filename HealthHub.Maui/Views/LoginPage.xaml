@@ -16,24 +16,24 @@
                    Margin="0,20,0,40" />
 
             <!-- Username -->
-            <VerticalStackLayout Spacing="5">
+            <VerticalStackLayout Spacing="5"
+                                 Padding="10">
                 <Label Text="Username" FontSize="16" />
                 <Entry Text="{Binding Username}" 
                        Placeholder="Enter username"
                        FontSize="16"
-                       BackgroundColor="#F5F5F5"
-                       Padding="10" />
+                       BackgroundColor="#F5F5F5"/>
             </VerticalStackLayout>
 
             <!-- Password -->
-            <VerticalStackLayout Spacing="5">
+            <VerticalStackLayout Spacing="5"
+                                 Padding="10">
                 <Label Text="Password" FontSize="16" />
                 <Entry Text="{Binding Password}" 
                        Placeholder="Enter password"
                        IsPassword="True"
                        FontSize="16"
-                       BackgroundColor="#F5F5F5"
-                       Padding="10" />
+                       BackgroundColor="#F5F5F5" />
             </VerticalStackLayout>
 
             <!-- Login Button -->
